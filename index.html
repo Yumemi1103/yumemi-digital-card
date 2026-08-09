@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>デジタル診察券</title>
+
+  <!-- Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <style>
     * {
@@ -12,8 +16,14 @@
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP",
-                   "Yu Gothic", YuGothic, sans-serif;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Noto Sans JP",
+        "Yu Gothic",
+        YuGothic,
+        sans-serif;
+
       background: #f7f7f7;
       color: #333;
     }
@@ -59,21 +69,27 @@
       margin-bottom: 24px;
     }
 
-    .camera-button {
+    button {
       display: block;
       width: 100%;
       padding: 16px;
+      margin-top: 12px;
+
       border: none;
       border-radius: 10px;
+
       background: #06c755;
       color: white;
+
       font-size: 16px;
       font-weight: bold;
+
       cursor: pointer;
     }
 
-    .camera-button:active {
-      opacity: 0.8;
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
     }
 
     .preview {
@@ -87,10 +103,42 @@
       border: 1px solid #ddd;
     }
 
-    .preview-text {
-      margin-top: 12px;
+    .ocr-status {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f3f3f3;
+
       font-size: 14px;
-      color: #666;
+      line-height: 1.6;
+    }
+
+    .result {
+      display: none;
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .result-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    #ocrText {
+      width: 100%;
+      min-height: 180px;
+
+      padding: 12px;
+
+      border: 1px solid #ddd;
+      border-radius: 8px;
+
+      background: #fafafa;
+
+      font-size: 14px;
+      line-height: 1.7;
+
+      white-space: pre-wrap;
     }
 
     #cameraInput {
@@ -121,7 +169,6 @@
 
       <button
         type="button"
-        class="camera-button"
         onclick="openCamera()">
         診察券を撮影する
       </button>
@@ -134,10 +181,36 @@
         onchange="showPreview(event)">
 
       <div id="preview" class="preview">
-        <img id="previewImage" alt="撮影した診察券">
-        <div class="preview-text">
-          撮影した画像を確認してください。
+
+        <img
+          id="previewImage"
+          alt="撮影した診察券">
+
+        <button
+          id="ocrButton"
+          type="button"
+          onclick="runOCR()">
+          OCRを開始する
+        </button>
+
+      </div>
+
+      <div
+        id="ocrStatus"
+        class="ocr-status"
+        style="display:none;">
+      </div>
+
+      <div
+        id="result"
+        class="result">
+
+        <div class="result-title">
+          OCR読み取り結果
         </div>
+
+        <div id="ocrText"></div>
+
       </div>
 
     </section>
@@ -145,25 +218,169 @@
   </main>
 
   <script>
+
+    let selectedFile = null;
+
     function openCamera() {
-      document.getElementById("cameraInput").click();
+
+      document
+        .getElementById("cameraInput")
+        .click();
+
     }
 
+
     function showPreview(event) {
+
       const file = event.target.files[0];
 
       if (!file) {
         return;
       }
 
-      const imageUrl = URL.createObjectURL(file);
+      selectedFile = file;
 
-      const previewImage = document.getElementById("previewImage");
-      const preview = document.getElementById("preview");
+      const imageUrl =
+        URL.createObjectURL(file);
+
+      const previewImage =
+        document.getElementById("previewImage");
+
+      const preview =
+        document.getElementById("preview");
 
       previewImage.src = imageUrl;
+
       preview.style.display = "block";
+
+      document.getElementById("result")
+        .style.display = "none";
+
+      document.getElementById("ocrStatus")
+        .style.display = "none";
+
     }
+
+
+    async function runOCR() {
+
+      if (!selectedFile) {
+        alert("診察券を撮影してください。");
+        return;
+      }
+
+      const button =
+        document.getElementById("ocrButton");
+
+      const status =
+        document.getElementById("ocrStatus");
+
+      const result =
+        document.getElementById("result");
+
+      const ocrText =
+        document.getElementById("ocrText");
+
+
+      button.disabled = true;
+
+      result.style.display = "none";
+
+      status.style.display = "block";
+
+      status.textContent =
+        "OCRの準備をしています…\n" +
+        "初回は日本語のOCRデータを読み込むため、少し時間がかかります。";
+
+
+      try {
+
+        const worker =
+          await Tesseract.createWorker(
+            "jpn",
+            1,
+            {
+              logger: function(message) {
+
+                if (message.status) {
+
+                  let percent = "";
+
+                  if (typeof message.progress === "number") {
+
+                    percent =
+                      " " +
+                      Math.round(message.progress * 100) +
+                      "%";
+
+                  }
+
+                  status.textContent =
+                    "OCR処理中…\n" +
+                    message.status +
+                    percent;
+
+                }
+
+              }
+            }
+          );
+
+
+        status.textContent =
+          "診察券の文字を読み取っています…";
+
+
+        const resultData =
+          await worker.recognize(selectedFile);
+
+
+        const text =
+          resultData.data.text;
+
+
+        await worker.terminate();
+
+
+        if (!text || !text.trim()) {
+
+          ocrText.textContent =
+            "文字を読み取ることができませんでした。\n" +
+            "診察券を明るい場所で、文字がはっきり写るように撮影して再度お試しください。";
+
+        } else {
+
+          ocrText.textContent = text;
+
+        }
+
+
+        result.style.display = "block";
+
+        status.textContent =
+          "OCRが完了しました。";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+          "OCRでエラーが発生しました。";
+
+        ocrText.textContent =
+          "エラー内容：" +
+          error.message;
+
+        result.style.display = "block";
+
+      }
+
+
+      button.disabled = false;
+
+    }
+
   </script>
 
 </body>
