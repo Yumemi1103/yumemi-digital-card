@@ -5,589 +5,232 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>診察券をスマホへ</title>
 
-  <!-- QR読み取り -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-
-  <!-- 日本語OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-  <!-- QR生成 -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP",
-                   "Yu Gothic", YuGothic, sans-serif;
-      background: #f7f7f7;
-      color: #333;
-    }
-
-    .container {
-      max-width: 480px;
-      min-height: 100vh;
-      margin: 0 auto;
-      padding: 28px 18px 40px;
-      background: #fff;
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 23px;
-      margin: 12px 0 6px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 28px;
-    }
-
-    .card {
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 22px 18px;
-    }
-
-    .description {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    button {
-      width: 100%;
-      padding: 15px;
-      margin-top: 10px;
-      border: 0;
-      border-radius: 10px;
-      background: #06c755;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    button:disabled {
-      background: #aaa;
-    }
-
-    #cameraInput {
-      display: none;
-    }
-
-    #preview {
-      display: none;
-      margin-top: 20px;
-    }
-
-    #previewImage {
-      width: 100%;
-      max-height: 55vh;
-      object-fit: contain;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: #fafafa;
-    }
-
-    #status {
-      display: none;
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #f3f3f3;
-      font-size: 14px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    #result {
-      display: none;
-      margin-top: 20px;
-    }
-
-    .result-box {
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 10px;
-    }
-
-    .label {
-      color: #666;
-      font-size: 13px;
-      margin-bottom: 5px;
-    }
-
-    .value {
-      font-size: 24px;
-      font-weight: 700;
-      word-break: break-all;
-    }
-
-    #patientName {
-      font-size: 21px;
-    }
-
-    #qrcode {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 14px;
-      padding: 14px;
-      background: #fff;
-    }
-
-    #qrcode img,
-    #qrcode canvas {
-      width: 240px !important;
-      height: 240px !important;
-      max-width: 100%;
-      height: auto !important;
-    }
-
-    .note {
-      margin-top: 10px;
-      color: #777;
-      font-size: 12px;
-      line-height: 1.6;
-      text-align: center;
-    }
-
-    .error {
-      color: #b00020;
-    }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif; background:#f7f7f7; color:#333; }
+    .container { max-width:480px; min-height:100vh; margin:0 auto; padding:28px 18px 40px; background:#fff; }
+    h1 { text-align:center; font-size:23px; margin:12px 0 6px; }
+    .subtitle { text-align:center; color:#666; font-size:14px; margin-bottom:28px; }
+    .card { border:1px solid #ddd; border-radius:16px; padding:22px 18px; }
+    .description { text-align:center; color:#666; font-size:14px; line-height:1.7; margin-bottom:20px; }
+    button { width:100%; padding:15px; margin-top:10px; border:0; border-radius:10px; background:#06c755; color:#fff; font-size:16px; font-weight:700; }
+    button:disabled { background:#aaa; }
+    #cameraInput { display:none; }
+    #preview { display:none; margin-top:20px; }
+    #previewImage { width:100%; max-height:55vh; object-fit:contain; border:1px solid #ddd; border-radius:10px; background:#fafafa; }
+    #status { display:none; margin-top:16px; padding:12px; border-radius:10px; background:#f3f3f3; font-size:14px; line-height:1.6; white-space:pre-wrap; }
+    #result { display:none; margin-top:20px; }
+    .result-box { border:1px solid #ddd; border-radius:12px; padding:16px; margin-top:10px; }
+    .label { color:#666; font-size:13px; margin-bottom:5px; }
+    .value { font-size:24px; font-weight:700; word-break:break-all; }
+    #patientName { font-size:21px; }
+    #qrcode { display:flex; justify-content:center; align-items:center; margin-top:14px; padding:14px; background:#fff; }
+    #qrcode img, #qrcode canvas { width:240px !important; height:240px !important; }
+    .note { margin-top:10px; color:#777; font-size:12px; line-height:1.6; text-align:center; }
+    .error { color:#b00020; }
   </style>
 </head>
-
 <body>
-  <main class="container">
-    <h1>デジタル診察券</h1>
-    <div class="subtitle">綱島ゆめみ産婦人科</div>
-
-    <section class="card">
-      <div class="description">
-        診察券を明るい場所で、券面全体が入るように撮影してください。
-      </div>
-
-      <button type="button" onclick="openCamera()">
-        診察券を撮影する
-      </button>
-
-      <input
-        id="cameraInput"
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onchange="handlePhoto(event)"
-      >
-
-      <div id="preview">
-        <img id="previewImage" alt="撮影した診察券">
-
-        <button id="processButton" type="button" onclick="processCard()">
-          診察券を読み取る
-        </button>
-      </div>
-
-      <div id="status"></div>
-
-      <div id="result">
-        <div class="result-box">
-          <div class="label">診察券番号</div>
-          <div id="cardNumber" class="value"></div>
-        </div>
-
-        <div class="result-box">
-          <div class="label">氏名</div>
-          <div id="patientName" class="value"></div>
-        </div>
-
-        <div class="result-box">
-          <div class="label">診察券番号QRコード</div>
-          <div id="qrcode"></div>
-          <div class="note">
-            数字のみを格納しています。<br>
-            エラー訂正レベル：H（最高）
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    let selectedFile = null;
-
-    function openCamera() {
-      document.getElementById("cameraInput").click();
+<main class="container">
+  <h1>デジタル診察券</h1>
+  <div class="subtitle">綱島ゆめみ産婦人科</div>
+  <section class="card">
+    <div class="description">診察券を明るい場所で、券面全体が入るように撮影してください。</div>
+    <button type="button" onclick="openCamera()">診察券を撮影する</button>
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+    <div id="preview">
+      <img id="previewImage" alt="撮影した診察券">
+      <button id="processButton" type="button" onclick="processCard()">診察券を読み取る</button>
+    </div>
+    <div id="status"></div>
+    <div id="result">
+      <div class="result-box"><div class="label">診察券番号</div><div id="cardNumber" class="value"></div></div>
+      <div class="result-box"><div class="label">氏名</div><div id="patientName" class="value"></div></div>
+      <div class="result-box"><div class="label">診察券番号QRコード</div><div id="qrcode"></div><div class="note">数字のみを格納しています。<br>エラー訂正レベル：H（最高）</div></div>
+    </div>
+  </section>
+</main>
+<script>
+let selectedFile = null;
+function openCamera(){ document.getElementById('cameraInput').click(); }
+function handlePhoto(event){
+  const file=event.target.files[0]; if(!file)return;
+  selectedFile=file;
+  document.getElementById('previewImage').src=URL.createObjectURL(file);
+  document.getElementById('preview').style.display='block';
+  document.getElementById('result').style.display='none';
+  document.getElementById('status').style.display='none';
+}
+function setStatus(message,isError=false){
+  const el=document.getElementById('status'); el.style.display='block'; el.className=isError?'error':''; el.textContent=message;
+}
+function normalizeDigits(text){ return String(text||'').replace(/[^0-9]/g,''); }
+function loadImage(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(); const url=URL.createObjectURL(file);
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img);};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('画像を読み込めませんでした。'));};
+    img.src=url;
+  });
+}
+function canvasFromImage(img,maxSide=1800){
+  const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+  const c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(img.naturalWidth*scale));
+  c.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  ctx.drawImage(img,0,0,c.width,c.height);
+  return c;
+}
+function rotateCanvas(source,angle){
+  if(angle===0)return source;
+  const rad=angle*Math.PI/180;
+  const swap=angle===90||angle===270;
+  const c=document.createElement('canvas');
+  c.width=swap?source.height:source.width; c.height=swap?source.width:source.height;
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.translate(c.width/2,c.height/2); ctx.rotate(rad);
+  ctx.drawImage(source,-source.width/2,-source.height/2);
+  return c;
+}
+function makeVariants(source){
+  const variants=[];
+  const angles=[0,90,180,270];
+  for(const angle of angles){
+    const c=rotateCanvas(source,angle); variants.push({canvas:c,label:`回転${angle}°`});
+    // QRが小さい/背景の影響が強い場合に備え、各方向を中央・四隅に分割して検索する
+    const w=c.width,h=c.height;
+    const crops=[
+      [0,0,w,h,'全体'],
+      [0,0,Math.round(w*0.7),Math.round(h*0.7),'左上'],
+      [Math.round(w*0.3),0,w,Math.round(h*0.7),'右上'],
+      [0,Math.round(h*0.3),Math.round(w*0.7),h,'左下'],
+      [Math.round(w*0.3),Math.round(h*0.3),w,h,'右下']
+    ];
+    for(const [x1,y1,x2,y2,label] of crops){
+      if(label==='全体')continue;
+      const cw=x2-x1,ch=y2-y1;
+      const crop=document.createElement('canvas'); crop.width=cw; crop.height=ch;
+      const ctx=crop.getContext('2d',{willReadFrequently:true}); ctx.drawImage(c,x1,y1,cw,ch,0,0,cw,ch);
+      variants.push({canvas:crop,label:`回転${angle}°・${label}`});
     }
-
-    function handlePhoto(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      selectedFile = file;
-
-      const url = URL.createObjectURL(file);
-      document.getElementById("previewImage").src = url;
-      document.getElementById("preview").style.display = "block";
-      document.getElementById("result").style.display = "none";
-      document.getElementById("status").style.display = "none";
+  }
+  return variants;
+}
+function makeProcessedCanvas(source,mode){
+  const c=document.createElement('canvas'); c.width=source.width; c.height=source.height;
+  const ctx=c.getContext('2d',{willReadFrequently:true}); ctx.drawImage(source,0,0);
+  const data=ctx.getImageData(0,0,c.width,c.height); const d=data.data;
+  for(let i=0;i<d.length;i+=4){
+    const gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+    if(mode==='gray'){ d[i]=d[i+1]=d[i+2]=gray; }
+    else if(mode==='contrast'){
+      const v=Math.max(0,Math.min(255,(gray-128)*1.8+128)); d[i]=d[i+1]=d[i+2]=v;
     }
+  }
+  ctx.putImageData(data,0,0); return c;
+}
+function scanOneCanvas(canvas){
+  const modes=['normal','gray','contrast'];
+  for(const mode of modes){
+    const target=mode==='normal'?canvas:makeProcessedCanvas(canvas,mode);
+    const ctx=target.getContext('2d',{willReadFrequently:true});
+    const imageData=ctx.getImageData(0,0,target.width,target.height);
+    const code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'attemptBoth'});
+    if(code)return {code,canvas:target};
+  }
+  return null;
+}
+async function scanWithBarcodeDetector(img){
+  if(!('BarcodeDetector' in window))return null;
+  try{
+    const supported=await BarcodeDetector.getSupportedFormats();
+    if(!supported.includes('qr_code'))return null;
+    const detector=new BarcodeDetector({formats:['qr_code']});
+    const codes=await detector.detect(img);
+    if(codes&&codes.length&&codes[0].rawValue)return {data:codes[0].rawValue,method:'端末標準QR読み取り'};
+  }catch(e){ console.log('BarcodeDetector unavailable:',e); }
+  return null;
+}
+async function scanQRCode(img){
+  // まず端末標準のQR読み取りを試す。対応ブラウザでは最も安定しやすい。
+  const native=await scanWithBarcodeDetector(img);
+  if(native)return native;
 
-    function setStatus(message, isError = false) {
-      const el = document.getElementById("status");
-      el.style.display = "block";
-      el.className = isError ? "error" : "";
-      el.textContent = message;
+  const base=canvasFromImage(img,1800);
+  const variants=makeVariants(base);
+  let count=0;
+  for(const v of variants){
+    count++;
+    if(count%5===0)setStatus(`QRコードを探しています…\n${count}/${variants.length}`);
+    const found=scanOneCanvas(v.canvas);
+    if(found)return {data:found.code.data,canvas:v.canvas,code:found.code,method:'jsQR'};
+  }
+  return null;
+}
+function cleanName(text){
+  return String(text||'').replace(/\r/g,'\n').split('\n').map(s=>s.trim()).filter(Boolean).join(' ').replace(/[0-9０-９]/g,'').replace(/[|｜_＿~～]/g,'').replace(/\s+/g,' ').trim();
+}
+function cropNameArea(canvas,qr){
+  // 今回のサンプル：正しい向きではQRの右側に診察券番号、その下に氏名がある。
+  // QR座標だけに依存しすぎないよう、QRの大きさから相対的に領域を決める。
+  const tl=qr.location.topLeftCorner, tr=qr.location.topRightCorner, bl=qr.location.bottomLeftCorner;
+  const qrW=Math.max(Math.hypot(tr.x-tl.x,tr.y-tl.y),Math.hypot(bl.x-tl.x,bl.y-tl.y));
+  const qrRight=Math.max(qr.location.topRightCorner.x,qr.location.bottomRightCorner.x);
+  const qrTop=Math.min(qr.location.topLeftCorner.y,qr.location.topRightCorner.y);
+  const qrBottom=Math.max(qr.location.bottomLeftCorner.y,qr.location.bottomRightCorner.y);
+  const x=Math.round(qrRight+qrW*0.15);
+  const y=Math.round(qrTop+qrW*0.95);
+  const width=Math.min(canvas.width-x,Math.round(qrW*2.8));
+  const height=Math.min(canvas.height-y,Math.round(qrW*1.25));
+  if(width<100||height<60)throw new Error('氏名領域を検出できませんでした。');
+  const out=document.createElement('canvas'); out.width=width; out.height=height;
+  const ctx=out.getContext('2d',{willReadFrequently:true}); ctx.drawImage(canvas,x,y,width,height,0,0,width,height); return out;
+}
+function preprocessNameCanvas(source){
+  const scale=3; const out=document.createElement('canvas'); out.width=source.width*scale; out.height=source.height*scale;
+  const ctx=out.getContext('2d',{willReadFrequently:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; ctx.drawImage(source,0,0,out.width,out.height); return out;
+}
+async function recognizeName(canvas){
+  const worker=await Tesseract.createWorker('jpn',1,{logger:m=>{if(m.status){let p=typeof m.progress==='number'?' '+Math.round(m.progress*100)+'%':'';setStatus('氏名をOCRで読み取っています…\n'+m.status+p);}}});
+  await worker.setParameters({tessedit_pageseg_mode:'7'});
+  const result=await worker.recognize(canvas); const name=cleanName(result.data.text); await worker.terminate(); return name;
+}
+function generateQRCode(cardNumber){
+  const target=document.getElementById('qrcode'); target.innerHTML='';
+  new QRCode(target,{text:cardNumber,width:240,height:240,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+}
+async function processCard(){
+  if(!selectedFile){alert('診察券を撮影してください。');return;}
+  const button=document.getElementById('processButton'); button.disabled=true; document.getElementById('result').style.display='none';
+  try{
+    setStatus('診察券の画像を読み込んでいます…');
+    const img=await loadImage(selectedFile);
+    setStatus('QRコードを探しています…\n診察券の向きを変えながら自動で検索します。');
+    const qrResult=await scanQRCode(img);
+    if(!qrResult){
+      throw new Error('診察券のQRコードを読み取れませんでした。\n撮影した画像を確認し、QRコードが小さすぎないように診察券を画面いっぱいに近づけて撮影してください。');
     }
-
-    function normalizeDigits(text) {
-      // 数字以外の文字・記号・スペース・改行をすべて削除
-      return String(text || "").replace(/[^0-9]/g, "");
+    const cardNumber=normalizeDigits(qrResult.data);
+    if(!cardNumber)throw new Error('QRコードは検出できましたが、数字を取得できませんでした。');
+    setStatus('診察券番号を取得しました。\n番号：'+cardNumber+'\n\n氏名を読み取っています…');
+    let patientName='';
+    if(qrResult.code&&qrResult.canvas){
+      try{ const nameArea=preprocessNameCanvas(cropNameArea(qrResult.canvas,qrResult.code)); patientName=await recognizeName(nameArea); }catch(e){ console.log('name OCR:',e); }
     }
-
-    function loadImage(file) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-
-        img.onload = () => {
-          URL.revokeObjectURL(img.src);
-          resolve(img);
-        };
-
-        img.onerror = () => {
-          URL.revokeObjectURL(img.src);
-          reject(new Error("画像を読み込めませんでした。"));
-        };
-
-        img.src = URL.createObjectURL(file);
-      });
-    }
-
-    function rotateImageToCanvas(img, angle) {
-      const rad = angle * Math.PI / 180;
-      const swap = angle === 90 || angle === 270;
-
-      const canvas = document.createElement("canvas");
-      canvas.width = swap ? img.naturalHeight : img.naturalWidth;
-      canvas.height = swap ? img.naturalWidth : img.naturalHeight;
-
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(rad);
-
-      ctx.drawImage(
-        img,
-        -img.naturalWidth / 2,
-        -img.naturalHeight / 2
-      );
-
-      return canvas;
-    }
-
-    function getImageData(canvas) {
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      return ctx.getImageData(0, 0, canvas.width, canvas.height);
-    }
-
-    function qrPositionScore(qr, canvas) {
-      // 今回の診察券は、正しい向きにするとQRが左上に来る。
-      // 4方向を試し、QRが最も左上に来る向きを採用する。
-      const cx = qr.location.topLeftCorner.x;
-      const cy = qr.location.topLeftCorner.y;
-
-      return (cx / canvas.width) + (cy / canvas.height);
-    }
-
-    function scanQRCode(img) {
-      const candidates = [];
-
-      for (const angle of [0, 90, 180, 270]) {
-        const canvas = rotateImageToCanvas(img, angle);
-        const imageData = getImageData(canvas);
-
-        let code = jsQR(
-          imageData.data,
-          imageData.width,
-          imageData.height,
-          {
-            inversionAttempts: "attemptBoth"
-          }
-        );
-
-        if (!code) continue;
-
-        candidates.push({
-          angle,
-          canvas,
-          code,
-          score: qrPositionScore(code, canvas)
-        });
-      }
-
-      if (candidates.length === 0) {
-        return null;
-      }
-
-      candidates.sort((a, b) => a.score - b.score);
-
-      return candidates[0];
-    }
-
-    function cropNameArea(canvas, qr) {
-      const tl = qr.location.topLeftCorner;
-      const tr = qr.location.topRightCorner;
-      const bl = qr.location.bottomLeftCorner;
-
-      const qrWidth = Math.max(
-        Math.hypot(tr.x - tl.x, tr.y - tl.y),
-        Math.hypot(bl.x - tl.x, bl.y - tl.y)
-      );
-
-      const qrRight = Math.max(
-        qr.location.topRightCorner.x,
-        qr.location.bottomRightCorner.x
-      );
-
-      const qrBottom = Math.max(
-        qr.location.bottomLeftCorner.y,
-        qr.location.bottomRightCorner.y
-      );
-
-      // 今回の診察券サンプルに合わせ、
-      // QRの右側・下側にある「氏名」領域を切り出す。
-      const x = Math.max(
-        0,
-        Math.round(qrRight + qrWidth * 0.25)
-      );
-
-      const y = Math.max(
-        0,
-        Math.round(qrBottom + qrWidth * 0.40)
-      );
-
-      const width = Math.min(
-        canvas.width - x,
-        Math.round(qrWidth * 4.8)
-      );
-
-      const height = Math.min(
-        canvas.height - y,
-        Math.round(qrWidth * 1.6)
-      );
-
-      if (width < 100 || height < 60) {
-        throw new Error("氏名領域を検出できませんでした。");
-      }
-
-      const out = document.createElement("canvas");
-      out.width = width;
-      out.height = height;
-
-      const ctx = out.getContext("2d", {
-        willReadFrequently: true
-      });
-
-      ctx.drawImage(
-        canvas,
-        x, y, width, height,
-        0, 0, width, height
-      );
-
-      return out;
-    }
-
-    function preprocessNameCanvas(source) {
-      const scale = 3;
-
-      const out = document.createElement("canvas");
-      out.width = source.width * scale;
-      out.height = source.height * scale;
-
-      const ctx = out.getContext("2d", {
-        willReadFrequently: true
-      });
-
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-
-      ctx.drawImage(
-        source,
-        0, 0,
-        out.width,
-        out.height
-      );
-
-      return out;
-    }
-
-    function cleanName(text) {
-      return String(text || "")
-        .replace(/\r/g, "\n")
-        .split("\n")
-        .map(s => s.trim())
-        .filter(Boolean)
-        .join(" ")
-        .replace(/[0-9０-９]/g, "")
-        .replace(/[|｜_＿~～]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-    }
-
-    async function recognizeName(canvas) {
-      const worker = await Tesseract.createWorker(
-        "jpn",
-        1,
-        {
-          logger: message => {
-            if (message.status) {
-              let progress = "";
-
-              if (typeof message.progress === "number") {
-                progress =
-                  " " +
-                  Math.round(message.progress * 100) +
-                  "%";
-              }
-
-              setStatus(
-                "氏名をOCRで読み取っています…\n" +
-                message.status +
-                progress
-              );
-            }
-          }
-        }
-      );
-
-      // 今回のサンプルでは氏名が横書きになる向きで
-      // psm 13（単一行/単一文字列に近い構成）を使用。
-      await worker.setParameters({
-        tessedit_pageseg_mode: "13"
-      });
-
-      const result = await worker.recognize(canvas);
-      const name = cleanName(result.data.text);
-
-      await worker.terminate();
-
-      return name;
-    }
-
-    function generateQRCode(cardNumber) {
-      const target = document.getElementById("qrcode");
-      target.innerHTML = "";
-
-      // QRCode.jsのH = 最高エラー訂正レベル
-      new QRCode(target, {
-        text: cardNumber,
-        width: 240,
-        height: 240,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
-    }
-
-    async function processCard() {
-      if (!selectedFile) {
-        alert("診察券を撮影してください。");
-        return;
-      }
-
-      const button = document.getElementById("processButton");
-      button.disabled = true;
-
-      document.getElementById("result").style.display = "none";
-
-      try {
-        setStatus("診察券の画像を読み込んでいます…");
-
-        const img = await loadImage(selectedFile);
-
-        setStatus("QRコードを探しています…");
-
-        const qrResult = scanQRCode(img);
-
-        if (!qrResult) {
-          throw new Error(
-            "診察券のQRコードを読み取れませんでした。\n" +
-            "診察券全体が写るように、明るい場所でもう一度撮影してください。"
-          );
-        }
-
-        // QRに入っている情報から数字だけを残す。
-        // 例： "35884" → "35884"
-        const cardNumber = normalizeDigits(
-          qrResult.code.data
-        );
-
-        if (!cardNumber) {
-          throw new Error(
-            "QRコードから数字を取得できませんでした。"
-          );
-        }
-
-        setStatus(
-          "診察券番号を取得しました。\n" +
-          "番号：" + cardNumber +
-          "\n\n氏名を読み取っています…"
-        );
-
-        const nameArea =
-          cropNameArea(
-            qrResult.canvas,
-            qrResult.code
-          );
-
-        const processedNameArea =
-          preprocessNameCanvas(nameArea);
-
-        const patientName =
-          await recognizeName(processedNameArea);
-
-        if (!patientName) {
-          throw new Error(
-            "氏名を読み取れませんでした。\n" +
-            "今回は診察券番号だけ取得できました。"
-          );
-        }
-
-        document.getElementById("cardNumber")
-          .textContent = cardNumber;
-
-        document.getElementById("patientName")
-          .textContent = patientName;
-
-        generateQRCode(cardNumber);
-
-        document.getElementById("result")
-          .style.display = "block";
-
-        setStatus(
-          "読み取りが完了しました。\n" +
-          "診察券番号：" + cardNumber
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        setStatus(
-          error.message ||
-          "読み取り中にエラーが発生しました。",
-          true
-        );
-
-      } finally {
-        button.disabled = false;
-      }
-    }
-  </script>
+    document.getElementById('cardNumber').textContent=cardNumber;
+    document.getElementById('patientName').textContent=patientName||'氏名を読み取れませんでした';
+    generateQRCode(cardNumber);
+    document.getElementById('result').style.display='block';
+    setStatus('読み取りが完了しました。\n診察券番号：'+cardNumber+(patientName?'\n氏名：'+patientName:'\n氏名：手動確認が必要です。'));
+  }catch(error){ console.error(error); setStatus(error.message||'読み取り中にエラーが発生しました。',true); }
+  finally{ button.disabled=false; }
+}
+</script>
 </body>
 </html>
