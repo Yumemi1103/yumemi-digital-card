@@ -1,24 +1,283 @@
 <!doctype html>
-<html lang="ja"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff">
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
 <title>デジタル診察券｜綱島ゆめみ産婦人科</title>
 <style>
-:root{--g:#06c755;--ink:#202124;--muted:#5f6368;--line:#d9dde3;--soft:#f6f8fa;--err:#b42318;--warn:#8a5700}*{box-sizing:border-box}html,body{min-height:100%;margin:0;background:#f3f5f7;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}button,input{font:inherit}.setup{width:min(100%,560px);min-height:100vh;margin:auto;padding:max(24px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom));background:#fff}h1{margin:8px 0 4px;text-align:center;font-size:clamp(23px,6vw,30px)}.sub{text-align:center;color:var(--muted);margin:0 0 24px}.panel{padding:18px;border:1px solid var(--line);border-radius:16px}.lead,.note{font-size:14px;line-height:1.7;color:var(--muted)}.lead{text-align:center}button{width:100%;min-height:52px;margin-top:12px;padding:12px 16px;border:0;border-radius:11px;background:var(--g);color:#fff;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.secondary{background:#4d5560}#cameraInput{display:none}#preview,#confirmation{display:none;margin-top:16px}#previewImage{display:block;width:100%;max-height:52vh;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:var(--soft)}.status{display:none;margin-top:16px;padding:13px;border-radius:10px;background:#eff6ff;color:#174a7c;white-space:pre-line;font-size:14px;line-height:1.6}.status.error{background:#fff1f0;color:var(--err)}.status.warn{background:#fff7e7;color:var(--warn)}.box{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:12px}.label{margin-bottom:6px;color:var(--muted);font-size:13px;font-weight:600}.locked{font-size:28px;font-weight:800;letter-spacing:.06em}input{width:100%;min-height:50px;padding:10px 12px;border:1px solid #9aa4b2;border-radius:9px;font-size:20px}input:focus{outline:3px solid rgba(6,199,85,.22);border-color:var(--g)}.privacy{margin-top:18px;padding:12px;border-radius:10px;background:var(--soft);color:var(--muted);font-size:12px;line-height:1.65}#card{display:none;min-height:100svh;min-height:100vh;padding:max(28px,env(safe-area-inset-top)) 22px max(26px,env(safe-area-inset-bottom));background:linear-gradient(160deg,#fff,#f3fbf6);text-align:center;flex-direction:column;align-items:center}.clinic{font-size:clamp(22px,6vw,34px);font-weight:700}.cardlabel{margin-top:clamp(24px,7vh,68px);color:var(--muted);font-size:16px}#finalNumber{margin-top:5px;font-size:clamp(52px,16vw,92px);font-weight:800;letter-spacing:.08em;line-height:1.1;font-variant-numeric:tabular-nums}#finalName{margin-top:clamp(18px,4vh,36px);font-size:clamp(25px,7vw,42px);font-weight:600;word-break:break-word}.qrarea{margin-top:auto;padding-top:22px}#finalQr{display:flex;justify-content:center;align-items:center;width:min(72vw,300px);height:min(72vw,300px);margin:auto;padding:12px;background:#fff;border-radius:16px;box-shadow:0 4px 18px #0002}#finalQr img,#finalQr canvas{width:100%!important;height:100%!important}.caption{margin:12px 0 0;color:var(--muted);font-size:12px}#restart{width:min(100%,360px);margin-top:18px}.messages{display:none}
-</style></head><body>
-<main id="setup" class="setup"><h1>デジタル診察券</h1><p class="sub">綱島ゆめみ産婦人科</p><section class="panel"><p class="lead">診察券全体を、明るい場所で撮影してください。<br>番号はQRコードからのみ確定し、写真の数字と照合します。</p><button id="cameraButton" type="button">診察券を撮影する</button><input id="cameraInput" type="file" accept="image/*" capture="environment"><div id="preview"><img id="previewImage" alt="撮影した診察券"><button id="processButton" type="button">診察券を読み取る</button></div><div id="status" class="status" role="status" aria-live="polite"></div><section id="confirmation"><div class="box"><div class="label">QRコードから取得した診察券番号（変更不可）</div><div id="qrNumber" class="locked"></div></div><div class="box"><div class="label">写真の診察券番号（OCR照合／必要時は手入力）</div><input id="imageNumber" inputmode="numeric" autocomplete="off" maxlength="30" placeholder="写真に印字された番号を入力"><p id="numberHelp" class="note"></p></div><div class="box"><div class="label">氏名（OCR候補。診察券番号の直下を対象にしています）</div><input id="patientName" autocomplete="name" placeholder="氏名を確認して入力"><p class="note">OCRは誤認識することがあります。診察券を見て必ず確認・修正してください。</p></div><button id="completeButton" type="button">確認してデジタル診察券を表示</button></section><p class="privacy"><strong>個人情報について</strong><br>撮影画像はサーバーへ送信しません。QR読み取り・OCRは、この端末のブラウザ内で行います。OCRの補助ファイルを読み込めない場合も、手入力で続けられます。</p></section></main>
-<main id="card"><div class="clinic">綱島ゆめみ産婦人科</div><div class="cardlabel">診察券番号</div><div id="finalNumber"></div><div id="finalName"></div><div class="qrarea"><div id="finalQr" aria-label="診察券番号のQRコード"></div><p class="caption">QRコードには診察券番号の数字のみを格納しています</p></div><button id="restart" class="secondary" type="button">別の診察券を読み取る</button></main>
-<div id="messages" class="messages"><span data-k="first">先に診察券を撮影してください。</span><span data-k="image">撮影画像を読み込んでいます…</span><span data-k="scan">QRコードを探しています。診察券の向きを確認中です…</span><span data-k="noqr">QRコードを読み取れませんでした。明るい場所で、QRコードを隠さずに診察券全体を撮り直してください。</span><span data-k="badqr">QRコードは検出できましたが、数字だけの診察券番号として確認できませんでした。診察券を撮り直してください。</span><span data-k="check">写真に印字された番号と氏名を確認しています…</span><span data-k="oknum">OCRでQR番号との一致を確認しました。診察券の印字も目視で確認してください。</span><span data-k="manualnum">写真の数字を確実に認識・一致確認できませんでした。診察券に印字された番号を手入力して確認してください。</span><span data-k="ocr">OCRで確認しています…</span><span data-k="ready">QR番号を取得しました。OCR候補を確認してから進んでください。</span><span data-k="manual">QR番号を取得しました。写真の数字と氏名は、診察券を見ながら入力・確認してください。</span><span data-k="mismatch">写真の診察券番号がQRコードの番号と一致していません。診察券の印字を確認し、QR番号と同じ数字を入力してください。</span><span data-k="name">氏名を入力してください。診察券番号の直下にある氏名を手入力してください。</span><span data-k="prepare">デジタル診察券を準備しています…</span><span data-k="qrfail">QRコードを表示する部品を読み込めませんでした。インターネット接続を確認して、もう一度このボタンを押してください。</span><span data-k="fail">読み取り中に問題が発生しました。写真を撮り直してください。</span></div>
+:root{--g:#06c755;--ink:#202124;--muted:#5f6368;--line:#d9dde3;--soft:#f6f8fa;--err:#b42318;--warn:#8a5700}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0;background:#f3f5f7;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
+button,input{font:inherit}
+.setup{width:min(100%,560px);min-height:100vh;margin:auto;padding:max(24px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom));background:#fff}
+h1{margin:8px 0 4px;text-align:center;font-size:clamp(23px,6vw,30px)}
+.sub{text-align:center;color:var(--muted);margin:0 0 24px}
+.panel{padding:18px;border:1px solid var(--line);border-radius:16px}
+.lead,.note{font-size:14px;line-height:1.7;color:var(--muted)}
+.lead{text-align:center}
+button{width:100%;min-height:52px;margin-top:12px;padding:12px 16px;border:0;border-radius:11px;background:var(--g);color:#fff;font-weight:700;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+.secondary{background:#4d5560}
+#cameraInput{display:none}
+#preview,#confirmation{display:none;margin-top:16px}
+#previewImage,#cropCanvas{display:block;width:100%;max-height:40vh;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+.status{display:none;margin-top:16px;padding:13px;border-radius:10px;background:#eff6ff;color:#174a7c;white-space:pre-line;font-size:14px;line-height:1.6}
+.status.error{background:#fff1f0;color:var(--err)}
+.status.warn{background:#fff7e7;color:var(--warn)}
+.box{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:12px}
+.label{margin-bottom:6px;color:var(--muted);font-size:13px;font-weight:600}
+.locked{font-size:28px;font-weight:800;letter-spacing:.06em;color:#000}
+input{width:100%;min-height:50px;padding:10px 12px;border:1px solid #9aa4b2;border-radius:9px;font-size:20px}
+input:focus{outline:3px solid rgba(6,199,85,.22);border-color:var(--g)}
+.privacy{margin-top:18px;padding:12px;border-radius:10px;background:var(--soft);color:var(--muted);font-size:12px;line-height:1.65}
+#card{display:none;min-height:100vh;padding:max(28px,env(safe-area-inset-top)) 22px max(26px,env(safe-area-inset-bottom));background:linear-gradient(160deg,#fff,#f3fbf6);text-align:center;flex-direction:column;align-items:center}
+.clinic{font-size:clamp(22px,6vw,34px);font-weight:700}
+.cardlabel{margin-top:clamp(24px,7vh,68px);color:var(--muted);font-size:16px}
+#finalNumber{margin-top:5px;font-size:clamp(52px,16vw,92px);font-weight:800;letter-spacing:.08em;line-height:1.1;font-variant-numeric:tabular-nums}
+#finalName{margin-top:clamp(18px,4vh,36px);font-size:clamp(25px,7vw,42px);font-weight:600;word-break:break-word}
+.qrarea{margin-top:auto;padding-top:22px}
+#finalQr{display:flex;justify-content:center;align-items:center;width:min(72vw,300px);height:min(72vw,300px);margin:auto;padding:12px;background:#fff;border-radius:16px;box-shadow:0 4px 18px #0002}
+#finalQr img,#finalQr canvas{width:100%!important;height:100%!important}
+.caption{margin:12px 0 0;color:var(--muted);font-size:12px}
+#restart{width:min(100%,360px);margin-top:18px}
+.crop-container{margin-top:10px;text-align:center}
+.crop-container p{font-size:12px;color:var(--muted);margin:4px 0}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<main id="setup" class="setup">
+  <h1>デジタル診察券</h1>
+  <p class="sub">綱島ゆめみ産婦人科</p>
+  <section class="panel">
+    <p class="lead">診察券全体を明るい場所で撮影してください。</p>
+    <button id="cameraButton" type="button">診察券を撮影する</button>
+    <input id="cameraInput" type="file" accept="image/*" capture="environment">
+    
+    <div id="preview">
+      <img id="previewImage" alt="撮影した診察券">
+      <button id="processButton" type="button">診察券を読み取る</button>
+    </div>
+    
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    
+    <section id="confirmation">
+      <div class="box">
+        <div class="label">読み取った診察券番号</div>
+        <div id="qrNumber" class="locked"></div>
+      </div>
+      
+      <div class="box">
+        <div class="label">撮影画像の確認エリア</div>
+        <div class="crop-container">
+          <canvas id="cropCanvas"></canvas>
+          <p>※上記部分（診察券番号と氏名）が正しく写っているかご確認ください</p>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="label">氏名を入力してください</div>
+        <input id="patientName" autocomplete="name" placeholder="例：木村 慧">
+      </div>
+      
+      <button id="completeButton" type="button">確認してデジタル診察券を表示</button>
+    </section>
+
+    <p class="privacy"><strong>個人情報について</strong><br>撮影画像はサーバーへ送信しません。端末のブラウザ内でのみ処理を行います。</p>
+  </section>
+</main>
+
+<main id="card">
+  <div class="clinic">綱島ゆめみ産婦人科</div>
+  <div class="cardlabel">診察券番号</div>
+  <div id="finalNumber"></div>
+  <div id="finalName"></div>
+  <div class="qrarea">
+    <div id="finalQr" aria-label="診察券番号のQRコード"></div>
+    <p class="caption">QRコードには診察券番号の数字のみを格納しています</p>
+  </div>
+  <button id="restart" class="secondary" type="button">別の診察券を読み取る</button>
+</main>
+
 <script>
 "use strict";
-var F={jsqr:["https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js","https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"],tess:["https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js","https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"],qr:["https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js","https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"]};var file=null,url="",number="",promises={};var $=function(id){return document.getElementById(id)};var msg=function(k){var n=document.querySelector('[data-k="'+k+'"]');return n?n.textContent:""};
-function say(t,c){var e=$("status");e.style.display="block";e.className="status "+(c||"");e.textContent=t}function hide(){var e=$("status");e.style.display="none";e.textContent="";e.className="status"}function digits(v){return String(v||"").replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-65248)}).replace(/[^0-9]/g,"")}function valid(v){return /^[0-9０-９\s-]+$/.test(String(v||""))&&digits(v).length>0}function pause(){return new Promise(function(r){setTimeout(r,0)})}
-function load(k,ok){if(ok())return Promise.resolve();if(promises[k])return promises[k];promises[k]=(async function(){var last;for(var i=0;i<F[k].length;i++){try{await new Promise(function(resolve,reject){var s=document.createElement("script");s.src=F[k][i];s.async=true;s.onload=function(){ok()?resolve():reject(Error())};s.onerror=function(){reject(Error())};document.head.appendChild(s)});return}catch(e){last=e}}throw last})();return promises[k]}
-function imageFrom(f){return new Promise(function(resolve,reject){var u=URL.createObjectURL(f),im=new Image();im.onload=function(){URL.revokeObjectURL(u);resolve(im)};im.onerror=function(){URL.revokeObjectURL(u);reject(Error(msg("fail")))};im.src=u})}function canvas(im){var z=Math.min(1,2000/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*z);c.height=Math.round(im.naturalHeight*z);c.getContext("2d",{willReadFrequently:true}).drawImage(im,0,0,c.width,c.height);return c}function turn(s,a){if(!a)return s;var c=document.createElement("canvas"),swap=a===90||a===270;c.width=swap?s.height:s.width;c.height=swap?s.width:s.height;var x=c.getContext("2d",{willReadFrequently:true});x.translate(c.width/2,c.height/2);x.rotate(a*Math.PI/180);x.drawImage(s,-s.width/2,-s.height/2);return c}
-async function nativeQr(c){if(!("BarcodeDetector" in window))return null;try{var d=new BarcodeDetector({formats:["qr_code"]}),a=await d.detect(c);return a&&a[0]?{data:a[0].rawValue,points:a[0].cornerPoints||[]}:null}catch(e){return null}}async function jsQr(c){await load("jsqr",function(){return typeof window.jsQR==="function"});var i=c.getContext("2d",{willReadFrequently:true}).getImageData(0,0,c.width,c.height),q=window.jsQR(i.data,i.width,i.height,{inversionAttempts:"attemptBoth"});return q?{data:q.data,points:[q.location.topLeftCorner,q.location.topRightCorner,q.location.bottomRightCorner,q.location.bottomLeftCorner]}:null}function probe(c,x,y,w,h,scale){var o=document.createElement("canvas");o.width=Math.max(1,Math.round(w*scale));o.height=Math.max(1,Math.round(h*scale));o.getContext("2d",{willReadFrequently:true}).drawImage(c,x,y,w,h,0,0,o.width,o.height);return{canvas:o,x:x,y:y,scale:scale}}function mapProbe(r,p){if(!r)return null;return{data:r.data,points:(r.points||[]).map(function(v){return{x:v.x/p.scale+p.x,y:v.y/p.scale+p.y}})}}async function scan(im){var b=canvas(im),as=[0,90,180,270],i,c,n,r;for(i=0;i<as.length;i++){say(msg("scan"));c=turn(b,as[i]);r=await nativeQr(c);if(r)return{canvas:c,result:r};await pause()}for(i=0;i<as.length;i++){say(msg("scan"));c=turn(b,as[i]);var probes=[probe(c,0,0,c.width,c.height,1),probe(c,0,0,c.width*.68,c.height*.70,2.2),probe(c,0,c.height*.12,c.width*.55,c.height*.72,2.4),probe(c,c.width*.04,c.height*.18,c.width*.52,c.height*.62,2.5)];for(n=0;n<probes.length;n++){r=mapProbe(await jsQr(probes[n].canvas),probes[n]);if(r)return{canvas:c,result:r};await pause()}}return null}
-function cuts(c,p){if(!p||p.length<3)return{};var xs=p.map(function(v){return v.x}),ys=p.map(function(v){return v.y}),l=Math.min.apply(null,xs),r=Math.max.apply(null,xs),t=Math.min.apply(null,ys),b=Math.max.apply(null,ys),z=Math.max(r-l,b-t),right=c.width-r>z*.75;function crop(x,y,w,h){x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));w=Math.min(c.width-x,Math.round(w));h=Math.min(c.height-y,Math.round(h));if(w<20||h<20)return null;var o=document.createElement("canvas");o.width=w*3;o.height=h*3;o.getContext("2d",{willReadFrequently:true}).drawImage(c,x,y,w,h,0,0,o.width,o.height);return o}return right?{n:crop(r+z*.06,t-z*.08,Math.min(c.width-r-z*.08,z*4),z*.85),name:crop(r+z*.06,t+z*.8,Math.min(c.width-r-z*.08,z*4),z)}:{n:crop(l-z*.1,b+z*.05,Math.min(c.width-l+z*.1,z*4),z*.8),name:crop(l-z*.1,b+z*.85,Math.min(c.width-l+z*.1,z*4),z)}}
-async function read(c,lang,opt){if(!c)return{text:"",confidence:0};try{await load("tess",function(){return!!window.Tesseract});var w=await window.Tesseract.createWorker(lang,1,{logger:function(x){if(x.status&&x.progress>.1)say(msg("ocr"))}});try{await w.setParameters(opt);var r=await w.recognize(c);return{text:r.data.text||"",confidence:Number(r.data.confidence)||0}}finally{await w.terminate()}}catch(e){return{text:"",confidence:0}}}function nameText(v){return String(v||"").replace(/[\r\n]+/g," ").replace(/[0-9０-９]/g,"").replace(/[^\u3040-\u30ff\u3400-\u9fff々〆\s]/g," ").replace(/\s+/g," ").trim()}
-$("cameraButton").onclick=function(){$("cameraInput").click()};$("cameraInput").onchange=function(e){file=e.target.files&&e.target.files[0];if(!file)return;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);$("previewImage").src=url;$("preview").style.display="block";$("confirmation").style.display="none";hide()};$("imageNumber").oninput=function(e){e.target.value=digits(e.target.value)};
-$("processButton").onclick=async function(){if(!file){say(msg("first"),"error");return}var b=this;b.disabled=true;$("confirmation").style.display="none";try{say(msg("image"));var s=await scan(await imageFrom(file));if(!s)throw Error(msg("noqr"));if(!valid(s.result.data))throw Error(msg("badqr"));number=digits(s.result.data);$("qrNumber").textContent=number;say(msg("check"));var f=cuts(s.canvas,s.result.points),n=await read(f.n,"eng",{tessedit_char_whitelist:"0123456789",tessedit_pageseg_mode:"7"}),got=digits(n.text),ok=got===number&&got.length>0;$("imageNumber").value=ok?got:"";$("numberHelp").textContent=ok?msg("oknum"):msg("manualnum");var q=await read(f.name,"jpn",{tessedit_pageseg_mode:"7"}),nm=nameText(q.text);$("patientName").value=q.confidence>=55?nm:"";say(nm&&q.confidence>=55?msg("ready"):msg("manual"),"warn");$("confirmation").style.display="block"}catch(e){console.error(e);say(e.message||msg("fail"),"error")}finally{b.disabled=false}};
-$("completeButton").onclick=async function(){var entered=digits($("imageNumber").value),nm=$("patientName").value.trim();if(entered!==number){say(msg("mismatch"),"error");$("imageNumber").focus();return}if(!nm){say(msg("name"),"error");$("patientName").focus();return}try{say(msg("prepare"));await load("qr",function(){return typeof window.QRCode!=="undefined"});$("finalNumber").textContent=number;$("finalName").textContent=nm;var t=$("finalQr");t.innerHTML="";var z=Math.min(Math.max(180,Math.floor(innerWidth*.72)),300);new window.QRCode(t,{text:number,width:z,height:z,colorDark:"#000",colorLight:"#fff",correctLevel:window.QRCode.CorrectLevel.H});$("setup").style.display="none";$("card").style.display="flex";scrollTo(0,0)}catch(e){console.error(e);say(msg("qrfail"),"error")}};
-$("restart").onclick=function(){number="";file=null;$("cameraInput").value="";$("preview").style.display="none";$("confirmation").style.display="none";$("finalQr").innerHTML="";$("card").style.display="none";$("setup").style.display="block";hide();if(url){URL.revokeObjectURL(url);url=""}scrollTo(0,0)};addEventListener("beforeunload",function(){if(url)URL.revokeObjectURL(url)});
-</script></body></html>
+var file = null, url = "", number = "";
+var $ = function(id){ return document.getElementById(id); };
+
+function say(t, c){
+  var e = $("status");
+  e.style.display = "block";
+  e.className = "status " + (c || "");
+  e.textContent = t;
+}
+function hide(){
+  var e = $("status");
+  e.style.display = "none";
+  e.textContent = "";
+}
+
+$("cameraButton").onclick = function(){ $("cameraInput").click(); };
+
+$("cameraInput").onchange = function(e){
+  file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(url) URL.revokeObjectURL(url);
+  url = URL.createObjectURL(file);
+  $("previewImage").src = url;
+  $("preview").style.display = "block";
+  $("confirmation").style.display = "none";
+  hide();
+};
+
+$("processButton").onclick = async function(){
+  if(!file){ say("先に診察券を撮影してください。", "error"); return; }
+  var btn = this;
+  btn.disabled = true;
+  say("解析中...");
+
+  try {
+    var img = new Image();
+    img.src = url;
+    await img.decode();
+
+    // 読み取り用に画像を高速化サイズリサイズ (最大長辺 1000px)
+    var maxDim = 1000;
+    var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+    var cvs = document.createElement("canvas");
+    cvs.width = Math.round(img.width * scale);
+    cvs.height = Math.round(img.height * scale);
+    var ctx = cvs.getContext("2d");
+    ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+
+    // QR検出 (Native BarcodeDetector 優先、Fallback jsQR)
+    var qrData = null;
+    var points = [];
+
+    if ("BarcodeDetector" in window) {
+      try {
+        var detector = new BarcodeDetector({formats: ["qr_code"]});
+        var res = await detector.detect(cvs);
+        if (res && res.length > 0) {
+          qrData = res[0].rawValue;
+          points = res[0].cornerPoints || [];
+        }
+      } catch(e){}
+    }
+
+    if (!qrData && typeof jsQR !== "undefined") {
+      var imgData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+      var q = jsQR(imgData.data, cvs.width, cvs.height, {inversionAttempts: "attemptBoth"});
+      if (q) {
+        qrData = q.data;
+        points = [q.location.topLeftCorner, q.location.topRightCorner, q.location.bottomRightCorner, q.location.bottomLeftCorner];
+      }
+    }
+
+    if (!qrData) {
+      throw new Error("QRコードを読み取れませんでした。明るい場所でQRコードがはっきり写るように撮影し直してください。");
+    }
+
+    // 数字抽出
+    number = qrData.replace(/[^\d]/g, "");
+    if (!number) {
+      throw new Error("QRコードから診察券番号を読み取れませんでした。");
+    }
+
+    $("qrNumber").textContent = number;
+
+    // 赤枠領域（QRコードの右側の番号・氏名エリア）を切り出して表示
+    cropNameArea(img, points, scale);
+
+    hide();
+    $("confirmation").style.display = "block";
+    $("patientName").focus();
+
+  } catch(err) {
+    say(err.message || "読み取りに失敗しました。", "error");
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// QRコードの位置関係から「右側の番号・名前領域」を切り出してCanvasに描画
+function cropNameArea(img, points, scale) {
+  var cropCvs = $("cropCanvas");
+  var ctx = cropCvs.getContext("2d");
+
+  if (!points || points.length < 4) {
+    cropCvs.style.display = "none";
+    return;
+  }
+
+  // 元画像座標系に引き戻す
+  var xs = points.map(p => p.x / scale);
+  var ys = points.map(p => p.y / scale);
+  var minX = Math.min(...xs), maxX = Math.max(...xs);
+  var minY = Math.min(...ys), maxY = Math.max(...ys);
+  var qrWidth = maxX - minX;
+
+  // QRコードの右側領域を算出（幅はQRの約3.2倍、高さは1.5倍程度）
+  var cropX = maxX + (qrWidth * 0.1);
+  var cropY = minY - (qrWidth * 0.1);
+  var cropW = qrWidth * 3.2;
+  var cropH = qrWidth * 1.6;
+
+  // 範囲チェック
+  cropX = Math.max(0, cropX);
+  cropY = Math.max(0, cropY);
+  cropW = Math.min(img.width - cropX, cropW);
+  cropH = Math.min(img.height - cropY, cropH);
+
+  cropCvs.width = cropW;
+  cropCvs.height = cropH;
+  cropCvs.style.display = "block";
+
+  ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+}
+
+$("completeButton").onclick = function(){
+  var nm = $("patientName").value.trim();
+  if(!nm){
+    say("氏名を入力してください。", "error");
+    $("patientName").focus();
+    return;
+  }
+
+  $("finalNumber").textContent = number;
+  $("finalName").textContent = nm;
+
+  var t = $("finalQr");
+  t.innerHTML = "";
+  var z = Math.min(Math.max(180, Math.floor(window.innerWidth * 0.72)), 300);
+  new QRCode(t, {
+    text: number,
+    width: z,
+    height: z,
+    colorDark: "#000",
+    colorLight: "#fff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  $("setup").style.display = "none";
+  $("card").style.display = "flex";
+  window.scrollTo(0, 0);
+};
+
+$("restart").onclick = function(){
+  number = "";
+  file = null;
+  $("cameraInput").value = "";
+  $("preview").style.display = "none";
+  $("confirmation").style.display = "none";
+  $("finalQr").innerHTML = "";
+  $("card").style.display = "none";
+  $("setup").style.display = "block";
+  hide();
+  if(url){ URL.revokeObjectURL(url); url = ""; }
+  window.scrollTo(0, 0);
+};
+</script>
+</body>
+</html>
