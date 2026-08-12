@@ -1,1427 +1,2311 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <title>デジタル診察券｜綱島ゆめみ産婦人科</title>
+<title>デジタル診察券｜綱島ゆめみ産婦人科</title>
 
-  <!-- QRコード読み取り -->
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
-  <!-- QRコード生成 -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+* {
+  box-sizing: border-box;
+}
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans JP",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
 
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Noto Sans JP",
-        "Hiragino Kaku Gothic ProN",
-        "Yu Gothic",
-        sans-serif;
-      background: #f5f6f7;
-      color: #222;
-    }
+  background: #fff7fb;
+  color: #333;
+}
 
-    body {
-      min-height: 100vh;
-    }
+body {
+  min-height: 100vh;
+}
 
-    /* =========================
-       読み取り画面
-    ========================= */
+/* ==========================================
+   読み取り画面
+========================================== */
 
-    .setup {
-      width: 100%;
-      max-width: 600px;
-      min-height: 100vh;
-      margin: 0 auto;
-      padding:
-        max(25px, env(safe-area-inset-top))
-        18px
-        max(35px, env(safe-area-inset-bottom));
-      background: #fff;
-    }
+.setup {
+  width: 100%;
+  max-width: 600px;
+  min-height: 100vh;
+  margin: 0 auto;
 
-    h1 {
-      margin: 10px 0 5px;
-      text-align: center;
-      font-size: 25px;
-      font-weight: 700;
-    }
+  padding:
+    max(25px, env(safe-area-inset-top))
+    18px
+    max(35px, env(safe-area-inset-bottom));
 
-    .clinic-name {
-      text-align: center;
-      font-size: 15px;
-      color: #666;
-      margin-bottom: 28px;
-    }
+  background: #fff;
+}
 
-    .panel {
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 20px;
-      background: #fff;
-    }
+h1 {
+  margin: 10px 0 5px;
+  text-align: center;
+  font-size: 25px;
+}
 
-    .description {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
+.clinic-name {
+  text-align: center;
+  color: #d14c91;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
 
-    button {
-      width: 100%;
-      min-height: 52px;
-      margin-top: 10px;
-      border: 0;
-      border-radius: 11px;
-      background: #06c755;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+.panel {
+  border: 1px solid #f0c5dc;
+  border-radius: 18px;
+  padding: 20px;
+  background: #fff;
+}
 
-    button:disabled {
-      background: #aaa;
-      cursor: wait;
-    }
+.description {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
 
-    .gray-button {
-      background: #555;
-    }
+button {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 10px;
 
-    #cameraInput {
-      display: none;
-    }
+  border: 0;
+  border-radius: 12px;
 
-    #preview {
-      display: none;
-      margin-top: 18px;
-    }
+  background:
+    linear-gradient(
+      135deg,
+      #e85c9d,
+      #9b65c8
+    );
 
-    #previewImage {
-      display: block;
-      width: 100%;
-      max-height: 55vh;
-      object-fit: contain;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      background: #fafafa;
-    }
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
 
-    #status {
-      display: none;
-      margin-top: 16px;
-      padding: 13px;
-      border-radius: 10px;
-      background: #eef6ff;
-      color: #18527d;
-      font-size: 14px;
-      line-height: 1.6;
-      white-space: pre-line;
-    }
+  cursor: pointer;
+}
 
-    #status.error {
-      background: #fff0f0;
-      color: #b00020;
-    }
+button:disabled {
+  background: #aaa;
+}
 
-    #status.warning {
-      background: #fff7e6;
-      color: #805500;
-    }
+.gray-button {
+  background: #666;
+}
 
-    #confirmation {
-      display: none;
-      margin-top: 20px;
-    }
+#cameraInput {
+  display: none;
+}
 
-    .result-box {
-      margin-top: 14px;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-    }
+#preview {
+  display: none;
+  margin-top: 18px;
+}
 
-    .label {
-      margin-bottom: 7px;
-      color: #666;
-      font-size: 13px;
-      font-weight: 600;
-    }
+#previewImage {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
 
-    .auto-number {
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-    }
+  border: 1px solid #e5bfd4;
+  border-radius: 12px;
+}
 
-    input {
-      width: 100%;
-      min-height: 52px;
-      padding: 10px 13px;
-      border: 1px solid #aaa;
-      border-radius: 9px;
-      font-size: 20px;
-      background: #fff;
-    }
+#status {
+  display: none;
 
-    input:focus {
-      outline: 3px solid rgba(6, 199, 85, 0.18);
-      border-color: #06c755;
-    }
+  margin-top: 16px;
+  padding: 13px;
 
-    .help {
-      margin-top: 6px;
-      color: #777;
-      font-size: 12px;
-      line-height: 1.6;
-    }
+  border-radius: 10px;
 
-    .privacy {
-      margin-top: 18px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #f5f5f5;
-      color: #777;
-      font-size: 12px;
-      line-height: 1.6;
-    }
+  background: #fff1f8;
 
-    /* =========================
-       最終デジタル診察券
-    ========================= */
+  color: #a04070;
 
-    #digitalCard {
-      display: none;
+  font-size: 14px;
+  line-height: 1.6;
 
-      width: 100%;
-      min-height: 100vh;
+  white-space: pre-line;
+}
 
-      padding:
-        max(25px, env(safe-area-inset-top))
-        20px
-        max(25px, env(safe-area-inset-bottom));
+#status.error {
+  background: #fff0f0;
+  color: #b00020;
+}
 
-      background: linear-gradient(
-        160deg,
-        #ffffff 0%,
-        #f3fbf6 100%
-      );
+#status.warning {
+  background: #fff8e8;
+  color: #805500;
+}
 
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
+#confirmation {
+  display: none;
+  margin-top: 20px;
+}
 
-    .final-clinic-name {
-      width: 100%;
-      font-size: clamp(22px, 6vw, 34px);
-      font-weight: 700;
-      margin-top: 5px;
-    }
+.result-box {
+  margin-top: 14px;
+  padding: 15px;
 
-    .final-label {
-      margin-top: clamp(25px, 7vh, 65px);
-      color: #666;
-      font-size: 16px;
-    }
+  border: 1px solid #e8c4d8;
+  border-radius: 12px;
 
-    #finalNumber {
-      margin-top: 4px;
-      font-size: clamp(52px, 16vw, 90px);
-      line-height: 1.1;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      font-variant-numeric: tabular-nums;
-    }
+  background: #fff;
+}
 
-    #finalName {
-      margin-top: clamp(15px, 4vh, 35px);
-      font-size: clamp(25px, 7vw, 42px);
-      font-weight: 600;
-      word-break: break-word;
-    }
+.label {
+  margin-bottom: 7px;
 
-    .qr-area {
-      width: 100%;
-      margin-top: auto;
-      padding-top: 25px;
-    }
+  color: #777;
 
-    #finalQr {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
 
-      width: min(72vw, 300px);
-      height: min(72vw, 300px);
+.auto-number {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
 
-      margin: 0 auto;
-      padding: 12px;
+input {
+  width: 100%;
+  min-height: 52px;
 
-      background: #fff;
-      border-radius: 15px;
+  padding: 10px 13px;
 
-      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.12);
-    }
+  border:
+    1px solid #d9a9c3;
 
-    #finalQr img,
-    #finalQr canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
+  border-radius: 9px;
 
-    .qr-note {
-      margin-top: 10px;
-      color: #777;
-      font-size: 11px;
-    }
+  font-size: 20px;
 
-    #restartButton {
-      width: min(100%, 350px);
-      margin-top: 18px;
-      background: #555;
-    }
-  </style>
+  background: #fff;
+}
+
+input:focus {
+  outline:
+    3px solid rgba(232,92,157,.15);
+
+  border-color: #d95796;
+}
+
+.help {
+  margin-top: 6px;
+
+  color: #777;
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.privacy {
+  margin-top: 18px;
+
+  padding: 12px;
+
+  border-radius: 10px;
+
+  background: #faf4f8;
+
+  color: #777;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+
+/* ==========================================
+   デジタル診察券
+========================================== */
+
+#digitalCard {
+
+  display: none;
+
+  width: 100%;
+  min-height: 100vh;
+
+  padding:
+    max(20px, env(safe-area-inset-top))
+    15px
+    max(20px, env(safe-area-inset-bottom));
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #fff4fa
+    );
+
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+
+/*
+   実際の診察券表示エリア
+*/
+
+.card-display {
+
+  width: 100%;
+  max-width: 650px;
+
+  min-height:
+    calc(
+      100vh - 40px
+    );
+
+  padding:
+    25px 18px 22px;
+
+  border:
+    5px solid #e989b7;
+
+  border-radius: 28px;
+
+  background: #fff;
+
+  box-shadow:
+    0 6px 25px
+    rgba(160,70,120,.15);
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+}
+
+
+/*
+   医療機関名
+*/
+
+.final-clinic-name {
+
+  width: 100%;
+
+  color: #d3478b;
+
+  font-size:
+    clamp(
+      22px,
+      6vw,
+      34px
+    );
+
+  font-weight: 800;
+
+  letter-spacing: .03em;
+}
+
+
+/*
+   診察券番号
+*/
+
+.final-number-label {
+
+  margin-top:
+    clamp(
+      25px,
+      5vh,
+      55px
+    );
+
+  color: #777;
+
+  font-size: 15px;
+}
+
+#finalNumber {
+
+  margin-top: 4px;
+
+  color: #333;
+
+  font-size:
+    clamp(
+      52px,
+      16vw,
+      90px
+    );
+
+  line-height: 1.1;
+
+  font-weight: 800;
+
+  letter-spacing: .08em;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+/*
+   氏名
+*/
+
+.final-name-label {
+
+  margin-top:
+    clamp(
+      18px,
+      3vh,
+      30px
+    );
+
+  color: #b44a83;
+
+  font-size: 15px;
+
+  font-weight: 700;
+}
+
+#finalName {
+
+  margin-top: 4px;
+
+  color: #8e4b79;
+
+  font-size:
+    clamp(
+      27px,
+      7vw,
+      43px
+    );
+
+  font-weight: 800;
+
+  word-break: break-word;
+}
+
+
+/*
+   QRコード
+*/
+
+.qr-area {
+
+  width: 100%;
+
+  margin-top: auto;
+
+  padding-top: 20px;
+}
+
+#finalQr {
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  width:
+    min(
+      70vw,
+      300px
+    );
+
+  height:
+    min(
+      70vw,
+      300px
+    );
+
+  margin: 0 auto;
+
+  padding: 10px;
+
+  background: #fff;
+
+  border:
+    2px solid #f0c0d8;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 3px 15px
+    rgba(0,0,0,.10);
+}
+
+#finalQr img,
+#finalQr canvas {
+
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.qr-note {
+
+  margin-top: 8px;
+
+  color: #999;
+
+  font-size: 10px;
+}
+
+
+/*
+   保存ボタン
+*/
+
+#saveButton {
+
+  width:
+    min(
+      100%,
+      360px
+    );
+
+  margin-top: 16px;
+}
+
+
+/*
+   戻る
+*/
+
+#restartButton {
+
+  width:
+    min(
+      100%,
+      360px
+    );
+
+  margin-top: 8px;
+
+  background: #777;
+}
+
+</style>
 </head>
 
 <body>
 
-<!-- ==================================================
+
+<!-- ==========================================
      読み取り画面
-================================================== -->
+========================================== -->
 
 <main id="setup" class="setup">
 
-  <h1>デジタル診察券</h1>
+<h1>
+デジタル診察券
+</h1>
 
-  <div class="clinic-name">
-    綱島ゆめみ産婦人科
-  </div>
+<div class="clinic-name">
+綱島ゆめみ産婦人科
+</div>
 
-  <section class="panel">
 
-    <div class="description">
-      診察券全体が入るように撮影してください。<br>
-      明るい場所で撮影すると、より読み取りやすくなります。
-    </div>
+<section class="panel">
 
-    <button id="cameraButton" type="button">
-      診察券を撮影する
-    </button>
+<div class="description">
 
-    <input
-      id="cameraInput"
-      type="file"
-      accept="image/*"
-      capture="environment"
-    >
+診察券全体が入るように撮影してください。<br>
 
-    <!-- 写真プレビュー -->
+明るい場所で撮影すると、
+より読み取りやすくなります。
 
-    <div id="preview">
+</div>
 
-      <img
-        id="previewImage"
-        alt="撮影した診察券"
-      >
 
-      <button
-        id="readButton"
-        type="button"
-      >
-        診察券を読み取る
-      </button>
+<button
+id="cameraButton"
+type="button">
 
-    </div>
+診察券を撮影する
 
-    <!-- ステータス -->
+</button>
 
-    <div
-      id="status"
-      role="status"
-      aria-live="polite"
-    ></div>
 
-    <!-- 確認画面 -->
+<input
+id="cameraInput"
+type="file"
+accept="image/*"
+capture="environment"
+>
 
-    <section id="confirmation">
 
-      <!-- 自動取得番号 -->
+<div id="preview">
 
-      <div class="result-box">
+<img
+id="previewImage"
+alt="撮影した診察券"
+>
 
-        <div class="label">
-          自動取得した診察券番号
-        </div>
 
-        <div
-          id="autoNumber"
-          class="auto-number"
-        >
-          -
-        </div>
+<button
+id="readButton"
+type="button">
 
-        <div class="help">
-          QRコードまたは写真の数字から取得した番号です。
-        </div>
+診察券を読み取る
 
-      </div>
+</button>
 
-      <!-- 手動修正 -->
+</div>
 
-      <div class="result-box">
 
-        <div class="label">
-          診察券番号（確認・修正）
-        </div>
+<div
+id="status"
+role="status"
+aria-live="polite">
+</div>
 
-        <input
-          id="numberInput"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
-          maxlength="20"
-          placeholder="診察券番号を入力"
-        >
 
-        <div class="help">
-          自動取得した番号が正しくない場合は、
-          ここを直接修正してください。
-        </div>
+<!-- 確認画面 -->
 
-      </div>
+<section id="confirmation">
 
-      <!-- 氏名 -->
 
-      <div class="result-box">
+<div class="result-box">
 
-        <div class="label">
-          氏名
-        </div>
+<div class="label">
+自動取得した診察券番号
+</div>
 
-        <input
-          id="nameInput"
-          type="text"
-          autocomplete="name"
-          placeholder="例：木村 慧"
-        >
+<div
+id="autoNumber"
+class="auto-number">
+-
+</div>
 
-        <div class="help">
-          氏名は必ず診察券を確認して入力してください。
-        </div>
+<div class="help">
+自動取得した番号です。
+必ず診察券の数字と確認してください。
+</div>
 
-      </div>
+</div>
 
-      <button
-        id="completeButton"
-        type="button"
-      >
-        確認してデジタル診察券を表示
-      </button>
 
-    </section>
+<div class="result-box">
 
-    <div class="privacy">
-      <strong>個人情報について</strong><br>
-      撮影した画像はサーバーへ送信しません。
-      診察券番号の読み取りは端末のブラウザ内で行います。
-    </div>
+<div class="label">
+診察券番号（確認・修正）
+</div>
 
-  </section>
+<input
+id="numberInput"
+type="text"
+inputmode="numeric"
+autocomplete="off"
+maxlength="20"
+placeholder="診察券番号"
+>
+
+<div class="help">
+数字のみ入力できます。
+間違っている場合は直接修正してください。
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div class="label">
+氏名
+</div>
+
+<input
+id="nameInput"
+type="text"
+autocomplete="name"
+placeholder="例：綱島 夢子"
+>
+
+<div class="help">
+氏名は自動認識を試みますが、
+間違っている場合は直接修正してください。
+</div>
+
+</div>
+
+
+<button
+id="completeButton"
+type="button">
+
+確認してデジタル診察券を表示
+
+</button>
+
+
+</section>
+
+
+<div class="privacy">
+
+<strong>
+個人情報について
+</strong>
+
+<br>
+
+撮影した画像はサーバーへ送信しません。
+診察券番号の読み取りは端末のブラウザ内で行います。
+
+</div>
+
+</section>
 
 </main>
 
 
-<!-- ==================================================
-     最終デジタル診察券
-================================================== -->
+<!-- ==========================================
+     デジタル診察券
+========================================== -->
 
 <main id="digitalCard">
 
-  <div class="final-clinic-name">
-    綱島ゆめみ産婦人科
-  </div>
 
-  <div class="final-label">
-    診察券番号
-  </div>
+<section
+id="cardDisplay"
+class="card-display">
 
-  <div id="finalNumber">
-  </div>
 
-  <div id="finalName">
-  </div>
+<div class="final-clinic-name">
 
-  <div class="qr-area">
+綱島ゆめみ産婦人科
 
-    <div
-      id="finalQr"
-      aria-label="診察券番号QRコード"
-    >
-    </div>
+</div>
 
-    <div class="qr-note">
-      QRコードには診察券番号の数字のみを格納しています
-    </div>
 
-  </div>
+<div class="final-number-label">
 
-  <button
-    id="restartButton"
-    type="button"
-  >
-    別の診察券を読み取る
-  </button>
+診察券番号
+
+</div>
+
+
+<div id="finalNumber">
+</div>
+
+
+<div class="final-name-label">
+
+氏名
+
+</div>
+
+
+<div id="finalName">
+</div>
+
+
+<div class="qr-area">
+
+<div
+id="finalQr">
+</div>
+
+
+<div class="qr-note">
+
+診察券番号の数字のみを格納しています
+
+</div>
+
+</div>
+
+
+<button
+id="saveButton"
+type="button">
+
+📱 この診察券を端末に保存
+
+</button>
+
+
+<button
+id="restartButton"
+type="button">
+
+別の診察券を読み取る
+
+</button>
+
+
+</section>
 
 </main>
 
 
 <script>
+
 "use strict";
 
-/* ==================================================
+
+/* ==========================================
    基本変数
-================================================== */
+========================================== */
 
 let selectedFile = null;
+
 let imageUrl = "";
+
 let detectedNumber = "";
 
 
-/* ==================================================
-   要素取得
-================================================== */
+/* ==========================================
+   要素
+========================================== */
 
-const $ = id => document.getElementById(id);
+const $ =
+id => document.getElementById(id);
 
 
-/* ==================================================
-   ステータス表示
-================================================== */
+/* ==========================================
+   ステータス
+========================================== */
 
-function showStatus(message, type = "") {
+function showStatus(
+message,
+type = ""
+){
 
-  const status = $("status");
+const status =
+$("status");
 
-  status.style.display = "block";
+status.style.display =
+"block";
 
-  status.className = "status";
+status.className =
+"status";
 
-  if (type) {
-    status.classList.add(type);
-  }
+if(type){
 
-  status.textContent = message;
+status.classList.add(
+type
+);
+
+}
+
+status.textContent =
+message;
+
 }
 
 
-function hideStatus() {
+function hideStatus(){
 
-  const status = $("status");
+$("status").style.display =
+"none";
 
-  status.style.display = "none";
+$("status").textContent =
+"";
 
-  status.textContent = "";
 }
 
 
-/* ==================================================
-   数字だけ残す
-================================================== */
+/* ==========================================
+   数字だけ
+========================================== */
 
-function onlyDigits(text) {
+function onlyDigits(text){
 
-  return String(text || "")
-    .replace(/[０-９]/g, function(char) {
-      return String.fromCharCode(
-        char.charCodeAt(0) - 65248
-      );
-    })
-    .replace(/[^0-9]/g, "");
+return String(
+text || ""
+)
+
+.replace(
+/[０-９]/g,
+function(char){
+
+return String.fromCharCode(
+char.charCodeAt(0) - 65248
+);
+
+}
+)
+
+.replace(
+/[^0-9]/g,
+""
+);
+
 }
 
 
-/* ==================================================
+/* ==========================================
    カメラ
-================================================== */
+========================================== */
 
-$("cameraButton").addEventListener("click", function() {
+$("cameraButton")
+.addEventListener(
+"click",
+function(){
 
-  $("cameraInput").click();
+$("cameraInput").click();
+
+}
+);
+
+
+/* ==========================================
+   写真
+========================================== */
+
+$("cameraInput")
+.addEventListener(
+"change",
+function(event){
+
+const file =
+event.target.files &&
+event.target.files[0];
+
+if(!file){
+
+return;
+
+}
+
+selectedFile =
+file;
+
+
+if(imageUrl){
+
+URL.revokeObjectURL(
+imageUrl
+);
+
+}
+
+
+imageUrl =
+URL.createObjectURL(
+file
+);
+
+
+$("previewImage").src =
+imageUrl;
+
+
+$("preview").style.display =
+"block";
+
+
+$("confirmation").style.display =
+"none";
+
+
+hideStatus();
+
+}
+);
+
+
+/* ==========================================
+   画像
+========================================== */
+
+function loadImage(){
+
+return new Promise(
+function(resolve,reject){
+
+const img =
+new Image();
+
+img.onload =
+function(){
+
+resolve(img);
+
+};
+
+img.onerror =
+function(){
+
+reject(
+new Error(
+"画像を読み込めませんでした。"
+)
+);
+
+};
+
+img.src =
+imageUrl;
+
+}
+);
+
+}
+
+
+/* ==========================================
+   Canvas
+========================================== */
+
+function createCanvas(
+img,
+maxSize = 1600
+){
+
+const width =
+img.naturalWidth ||
+img.width;
+
+const height =
+img.naturalHeight ||
+img.height;
+
+
+const scale =
+Math.min(
+1,
+maxSize /
+Math.max(
+width,
+height
+)
+);
+
+
+const canvas =
+document.createElement(
+"canvas"
+);
+
+
+canvas.width =
+Math.max(
+1,
+Math.round(
+width * scale
+)
+);
+
+
+canvas.height =
+Math.max(
+1,
+Math.round(
+height * scale
+)
+);
+
+
+const ctx =
+canvas.getContext(
+"2d",
+{
+willReadFrequently:true
+}
+);
+
+
+ctx.imageSmoothingEnabled =
+true;
+
+
+ctx.imageSmoothingQuality =
+"high";
+
+
+ctx.drawImage(
+img,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+
+return canvas;
+
+}
+
+
+/* ==========================================
+   QR
+========================================== */
+
+function readQR(canvas){
+
+if(
+typeof jsQR ===
+"undefined"
+){
+
+return null;
+
+}
+
+
+const ctx =
+canvas.getContext(
+"2d",
+{
+willReadFrequently:true
+}
+);
+
+
+const imageData =
+ctx.getImageData(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+
+return jsQR(
+imageData.data,
+imageData.width,
+imageData.height,
+{
+inversionAttempts:
+"attemptBoth"
+}
+);
+
+}
+
+
+/* ==========================================
+   QR回転
+========================================== */
+
+function scanQRCode(
+canvas
+){
+
+const angles =
+[
+0,
+90,
+180,
+270
+];
+
+
+for(
+const angle of angles
+){
+
+let target =
+canvas;
+
+
+if(
+angle !== 0
+){
+
+target =
+document.createElement(
+"canvas"
+);
+
+
+const swap =
+angle === 90 ||
+angle === 270;
+
+
+target.width =
+swap
+? canvas.height
+: canvas.width;
+
+
+target.height =
+swap
+? canvas.width
+: canvas.height;
+
+
+const ctx =
+target.getContext(
+"2d"
+);
+
+
+ctx.translate(
+target.width / 2,
+target.height / 2
+);
+
+
+ctx.rotate(
+angle * Math.PI / 180
+);
+
+
+ctx.drawImage(
+canvas,
+-canvas.width / 2,
+-canvas.height / 2
+);
+
+}
+
+
+const result =
+readQR(
+target
+);
+
+
+if(result){
+
+return result;
+
+}
+
+}
+
+
+return null;
+
+}
+
+
+/* ==========================================
+   氏名OCR
+   Tesseractを必要時だけ読み込む
+========================================== */
+
+async function loadTesseract(){
+
+if(
+window.Tesseract
+){
+
+return window.Tesseract;
+
+}
+
+
+await new Promise(
+function(resolve,reject){
+
+const script =
+document.createElement(
+"script"
+);
+
+script.src =
+"https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+
+
+script.onload =
+resolve;
+
+
+script.onerror =
+function(){
+
+reject(
+new Error(
+"氏名OCRを読み込めませんでした。"
+)
+);
+
+};
+
+
+document.head.appendChild(
+script
+);
+
+}
+);
+
+
+return window.Tesseract;
+
+}
+
+
+/* ==========================================
+   氏名OCR
+   診察券番号の直下付近を重点的に読む
+========================================== */
+
+async function recognizeName(
+img
+){
+
+try{
+
+const Tesseract =
+await loadTesseract();
+
+
+const canvas =
+createCanvas(
+img,
+1800
+);
+
+
+/*
+   診察券の中央付近を中心に
+   複数パターンで氏名を探します。
+*/
+
+const regions = [
+
+{
+x:0.20,
+y:0.25,
+w:0.75,
+h:0.35
+},
+
+{
+x:0.10,
+y:0.20,
+w:0.85,
+h:0.45
+},
+
+{
+x:0.25,
+y:0.30,
+w:0.70,
+h:0.30
+}
+
+];
+
+
+const worker =
+await Tesseract.createWorker(
+"jpn",
+1,
+{
+logger:function(message){
+
+if(
+message.status &&
+typeof message.progress ===
+"number"
+){
+
+showStatus(
+"氏名を確認しています…\n" +
+Math.round(
+message.progress * 100
+) +
+"%"
+);
+
+}
+
+}
+}
+);
+
+
+try{
+
+await worker.setParameters({
+
+tessedit_pageseg_mode:
+"6"
 
 });
 
 
-/* ==================================================
-   写真選択
-================================================== */
+for(
+const region of regions
+){
 
-$("cameraInput").addEventListener("change", function(event) {
+const crop =
+document.createElement(
+"canvas"
+);
 
-  const file = event.target.files &&
-               event.target.files[0];
 
-  if (!file) {
-    return;
-  }
+crop.width =
+Math.round(
+canvas.width *
+region.w
+);
 
-  selectedFile = file;
 
-  if (imageUrl) {
-    URL.revokeObjectURL(imageUrl);
-  }
+crop.height =
+Math.round(
+canvas.height *
+region.h
+);
 
-  imageUrl = URL.createObjectURL(file);
 
-  $("previewImage").src = imageUrl;
+const ctx =
+crop.getContext(
+"2d"
+);
 
-  $("preview").style.display = "block";
 
-  $("confirmation").style.display = "none";
+ctx.drawImage(
 
-  hideStatus();
+canvas,
+
+Math.round(
+canvas.width *
+region.x
+),
+
+Math.round(
+canvas.height *
+region.y
+),
+
+crop.width,
+crop.height,
+
+0,
+0,
+
+crop.width,
+crop.height
+
+);
+
+
+const result =
+await worker.recognize(
+crop
+);
+
+
+let text =
+result &&
+result.data &&
+result.data.text
+? result.data.text
+: "";
+
+
+/*
+   改行・記号などを整理
+*/
+
+text =
+text
+.replace(
+/[0-9０-９]/g,
+""
+)
+.replace(
+/[\r\n]+/g,
+" "
+)
+.replace(
+/[|｜_＿~～]/g,
+""
+)
+.replace(
+/\s+/g,
+" "
+)
+.trim();
+
+
+/*
+   明らかに氏名らしい文字列だけ採用
+*/
+
+if(
+text.length >= 2 &&
+text.length <= 20
+){
+
+return text;
+
+}
+
+}
+
+
+return "";
+
+}
+finally{
+
+await worker.terminate();
+
+}
+
+}
+catch(error){
+
+console.log(
+"Name OCR:",
+error
+);
+
+return "";
+
+}
+
+}
+
+
+/* ==========================================
+   読み取り
+========================================== */
+
+$("readButton")
+.addEventListener(
+"click",
+async function(){
+
+if(!selectedFile){
+
+showStatus(
+"診察券を撮影してください。",
+"error"
+);
+
+return;
+
+}
+
+
+const button =
+$("readButton");
+
+button.disabled =
+true;
+
+
+try{
+
+const img =
+await loadImage();
+
+
+showStatus(
+"診察券を確認しています…"
+);
+
+
+const canvas =
+createCanvas(
+img,
+1600
+);
+
+
+/*
+   まずQR
+*/
+
+const qr =
+scanQRCode(
+canvas
+);
+
+
+if(qr){
+
+const number =
+onlyDigits(
+qr.data
+);
+
+
+if(number){
+
+detectedNumber =
+number;
+
+
+$("autoNumber").textContent =
+number;
+
+
+$("numberInput").value =
+number;
+
+}
+
+}
+
+
+/*
+   QRがない場合
+*/
+
+if(
+!detectedNumber
+){
+
+showStatus(
+"QRコードを読み取れませんでした。\n" +
+"診察券の数字を確認しています…",
+"warning"
+);
+
+
+/*
+   今回は番号OCRも実施
+*/
+
+try{
+
+const Tesseract =
+await loadTesseract();
+
+
+const worker =
+await Tesseract.createWorker(
+"eng",
+1
+);
+
+
+await worker.setParameters({
+
+tessedit_char_whitelist:
+"0123456789",
+
+tessedit_pageseg_mode:
+"6"
 
 });
 
 
-/* ==================================================
-   画像読み込み
-================================================== */
-
-function loadImage() {
-
-  return new Promise(function(resolve, reject) {
-
-    const img = new Image();
-
-    img.onload = function() {
-      resolve(img);
-    };
-
-    img.onerror = function() {
-      reject(
-        new Error(
-          "画像を読み込めませんでした。"
-        )
-      );
-    };
-
-    img.src = imageUrl;
-
-  });
-
-}
-
-
-/* ==================================================
-   Canvas作成
-================================================== */
-
-function createCanvas(img, maxSize = 1600) {
-
-  const originalWidth =
-    img.naturalWidth || img.width;
-
-  const originalHeight =
-    img.naturalHeight || img.height;
-
-  const scale =
-    Math.min(
-      1,
-      maxSize /
-      Math.max(
-        originalWidth,
-        originalHeight
-      )
-    );
-
-  const canvas =
-    document.createElement("canvas");
-
-  canvas.width =
-    Math.max(
-      1,
-      Math.round(originalWidth * scale)
-    );
-
-  canvas.height =
-    Math.max(
-      1,
-      Math.round(originalHeight * scale)
-    );
-
-  const ctx =
-    canvas.getContext(
-      "2d",
-      { willReadFrequently: true }
-    );
-
-  ctx.imageSmoothingEnabled = true;
-
-  ctx.imageSmoothingQuality = "high";
-
-  ctx.drawImage(
-    img,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  return canvas;
-
-}
-
-
-/* ==================================================
-   QRコード読み取り
-================================================== */
-
-function readQR(canvas) {
-
-  if (
-    typeof jsQR === "undefined"
-  ) {
-    return null;
-  }
-
-  const ctx =
-    canvas.getContext(
-      "2d",
-      { willReadFrequently: true }
-    );
-
-  const imageData =
-    ctx.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-  const result =
-    jsQR(
-      imageData.data,
-      imageData.width,
-      imageData.height,
-      {
-        inversionAttempts: "attemptBoth"
-      }
-    );
-
-  return result;
-
-}
-
-
-/* ==================================================
-   QR読み取り
-   回転にも対応
-================================================== */
-
-function scanQRCode(canvas) {
-
-  const angles = [
-    0,
-    90,
-    180,
-    270
-  ];
-
-  for (
-    const angle of angles
-  ) {
-
-    let target = canvas;
-
-    if (angle !== 0) {
-
-      target =
-        document.createElement("canvas");
-
-      const swap =
-        angle === 90 ||
-        angle === 270;
-
-      target.width =
-        swap
-          ? canvas.height
-          : canvas.width;
-
-      target.height =
-        swap
-          ? canvas.width
-          : canvas.height;
-
-      const ctx =
-        target.getContext("2d");
-
-      ctx.translate(
-        target.width / 2,
-        target.height / 2
-      );
-
-      ctx.rotate(
-        angle * Math.PI / 180
-      );
-
-      ctx.drawImage(
-        canvas,
-        -canvas.width / 2,
-        -canvas.height / 2
-      );
-
-    }
-
-    const result =
-      readQR(target);
-
-    if (result) {
-      return result;
-    }
-
-  }
-
-  return null;
-
-}
-
-
-/* ==================================================
-   Tesseractを必要な時だけ読み込む
-================================================== */
-
-async function loadTesseract() {
-
-  if (window.Tesseract) {
-    return window.Tesseract;
-  }
-
-  await new Promise(
-    function(resolve, reject) {
-
-      const script =
-        document.createElement("script");
-
-      script.src =
-        "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-
-      script.onload = resolve;
-
-      script.onerror =
-        function() {
-          reject(
-            new Error(
-              "数字OCRを読み込めませんでした。"
-            )
-          );
-        };
-
-      document.head.appendChild(script);
-
-    }
-  );
-
-  return window.Tesseract;
-
-}
-
-
-/* ==================================================
-   数字OCR
-   ※ QRが読めない場合だけ実行
-================================================== */
-
-async function readNumberFromImage(img) {
-
-  const Tesseract =
-    await loadTesseract();
-
-  const canvas =
-    createCanvas(
-      img,
-      1800
-    );
-
-  /*
-    診察券番号は数字だけを探すため、
-    画像上部～中央部分を対象にします。
-  */
-
-  const crop =
-    document.createElement("canvas");
-
-  crop.width =
-    canvas.width;
-
-  crop.height =
-    Math.round(
-      canvas.height * 0.65
-    );
-
-  const ctx =
-    crop.getContext("2d");
-
-  ctx.drawImage(
-    canvas,
-    0,
-    0,
-    canvas.width,
-    crop.height,
-    0,
-    0,
-    crop.width,
-    crop.height
-  );
-
-
-  const worker =
-    await Tesseract.createWorker(
-      "eng",
-      1,
-      {
-        logger: function(message) {
-
-          if (
-            message.status &&
-            typeof message.progress === "number"
-          ) {
-
-            showStatus(
-              "診察券番号を確認しています…\n" +
-              Math.round(
-                message.progress * 100
-              ) +
-              "%"
-            );
-
-          }
-
-        }
-      }
-    );
-
-
-  try {
-
-    await worker.setParameters({
-
-      tessedit_char_whitelist:
-        "0123456789",
-
-      tessedit_pageseg_mode:
-        "6"
-
-    });
-
-
-    const result =
-      await worker.recognize(
-        crop
-      );
-
-
-    const text =
-      result &&
-      result.data &&
-      result.data.text
-        ? result.data.text
-        : "";
-
-
-    /*
-      数字以外を完全に削除
-    */
-
-    const number =
-      onlyDigits(text);
-
-
-    /*
-      3～12桁程度の連続数字を優先
-    */
-
-    const candidates =
-      text.match(
-        /\d{3,12}/g
-      ) || [];
-
-
-    if (candidates.length > 0) {
-
-      candidates.sort(
-        function(a, b) {
-
-          /*
-            5桁に近いものを優先
-          */
-
-          return (
-            Math.abs(a.length - 5) -
-            Math.abs(b.length - 5)
-          );
-
-        }
-      );
-
-      return onlyDigits(
-        candidates[0]
-      );
-
-    }
-
-
-    return number;
-
-  }
-
-  finally {
-
-    await worker.terminate();
-
-  }
-
-}
-
-
-/* ==================================================
-   読み取り開始
-================================================== */
-
-$("readButton").addEventListener(
-  "click",
-  async function() {
-
-    if (!selectedFile) {
-
-      showStatus(
-        "診察券を撮影してください。",
-        "error"
-      );
-
-      return;
-
-    }
-
-
-    const button =
-      $("readButton");
-
-    button.disabled = true;
-
-
-    try {
-
-      const img =
-        await loadImage();
-
-
-      showStatus(
-        "診察券を確認しています…"
-      );
-
-
-      /*
-        まずQRコード
-      */
-
-      const canvas =
-        createCanvas(
-          img,
-          1600
-        );
-
-
-      const qr =
-        scanQRCode(
-          canvas
-        );
-
-
-      if (qr) {
-
-        const number =
-          onlyDigits(
-            qr.data
-          );
-
-
-        if (number) {
-
-          detectedNumber =
-            number;
-
-          $("autoNumber").textContent =
-            number;
-
-          $("numberInput").value =
-            number;
-
-          showStatus(
-            "診察券番号をQRコードから取得しました。\n" +
-            "下の欄で番号をご確認ください。"
-          );
-
-        }
-
-      }
-      else {
-
-        /*
-          QRが読めなくてもエラーにしない
-        */
-
-        showStatus(
-          "QRコードを読み取れませんでした。\n" +
-          "数字だけを確認しています…",
-          "warning"
-        );
-
-
-        let number = "";
-
-
-        try {
-
-          number =
-            await readNumberFromImage(
-              img
-            );
-
-        }
-        catch (error) {
-
-          console.log(
-            "OCR error:",
-            error
-          );
-
-        }
-
-
-        detectedNumber =
-          onlyDigits(number);
-
-
-        if (detectedNumber) {
-
-          $("autoNumber").textContent =
-            detectedNumber;
-
-          $("numberInput").value =
-            detectedNumber;
-
-
-          showStatus(
-            "写真から診察券番号を仮取得しました。\n" +
-            "必ず診察券の数字を確認してください。",
-            "warning"
-          );
-
-        }
-        else {
-
-          $("autoNumber").textContent =
-            "自動取得できませんでした";
-
-          $("numberInput").value =
-            "";
-
-
-          showStatus(
-            "自動読み取りができませんでした。\n" +
-            "問題ありません。下の欄に診察券番号を入力してください。",
-            "warning"
-          );
-
-        }
-
-      }
-
-
-      /*
-        確認画面を表示
-      */
-
-      $("confirmation").style.display =
-        "block";
-
-
-      /*
-        氏名入力欄へ移動
-      */
-
-      setTimeout(
-        function() {
-
-          $("numberInput").focus();
-
-        },
-        300
-      );
-
-
-    }
-    catch (error) {
-
-      console.error(error);
-
-      showStatus(
-        error.message ||
-        "読み取り中にエラーが発生しました。",
-        "error"
-      );
-
-    }
-    finally {
-
-      button.disabled = false;
-
-    }
-
-  }
+const result =
+await worker.recognize(
+canvas
 );
 
 
-/* ==================================================
-   診察券番号入力
-   数字以外は自動削除
-================================================== */
+const text =
+result.data.text || "";
 
-$("numberInput").addEventListener(
-  "input",
-  function() {
 
-    this.value =
-      onlyDigits(
-        this.value
-      );
+const candidates =
+text.match(
+/\d{3,12}/g
+) || [];
 
-  }
+
+if(candidates.length){
+
+detectedNumber =
+onlyDigits(
+candidates[0]
+);
+
+$("autoNumber").textContent =
+detectedNumber;
+
+$("numberInput").value =
+detectedNumber;
+
+}
+
+
+await worker.terminate();
+
+}
+catch(error){
+
+console.log(
+"OCR:",
+error
+);
+
+}
+
+}
+
+
+/*
+   氏名OCR
+*/
+
+showStatus(
+"氏名を確認しています…"
 );
 
 
-/* ==================================================
-   デジタル診察券完成
-================================================== */
-
-$("completeButton").addEventListener(
-  "click",
-  function() {
-
-    const number =
-      onlyDigits(
-        $("numberInput").value
-      );
-
-    const name =
-      $("nameInput").value.trim();
-
-
-    /*
-      診察券番号チェック
-    */
-
-    if (!number) {
-
-      showStatus(
-        "診察券番号を入力してください。",
-        "error"
-      );
-
-      $("numberInput").focus();
-
-      return;
-
-    }
-
-
-    /*
-      氏名チェック
-    */
-
-    if (!name) {
-
-      showStatus(
-        "氏名を入力してください。",
-        "error"
-      );
-
-      $("nameInput").focus();
-
-      return;
-
-    }
-
-
-    /*
-      最終画面
-    */
-
-    $("finalNumber").textContent =
-      number;
-
-    $("finalName").textContent =
-      name;
-
-
-    /*
-      QRコード生成
-      診察券番号だけを格納
-      エラー訂正レベルH
-    */
-
-    const qrContainer =
-      $("finalQr");
-
-    qrContainer.innerHTML =
-      "";
-
-
-    const qrSize =
-      Math.min(
-        300,
-        Math.max(
-          190,
-          Math.floor(
-            window.innerWidth * 0.72
-          )
-        )
-      );
-
-
-    if (
-      typeof QRCode !== "undefined"
-    ) {
-
-      new QRCode(
-        qrContainer,
-        {
-          text: number,
-
-          width: qrSize,
-
-          height: qrSize,
-
-          colorDark: "#000000",
-
-          colorLight: "#ffffff",
-
-          correctLevel:
-            QRCode.CorrectLevel.H
-        }
-      );
-
-    }
-    else {
-
-      qrContainer.textContent =
-        "QRコードを生成できませんでした";
-
-    }
-
-
-    /*
-      読み取り画面を隠す
-    */
-
-    $("setup").style.display =
-      "none";
-
-
-    /*
-      最終診察券を表示
-    */
-
-    $("digitalCard").style.display =
-      "flex";
-
-
-    window.scrollTo(
-      0,
-      0
-    );
-
-  }
+const name =
+await recognizeName(
+img
 );
 
 
-/* ==================================================
+if(name){
+
+$("nameInput").value =
+name;
+
+showStatus(
+"読み取りが完了しました。\n" +
+"診察券番号と氏名を必ず確認してください。"
+);
+
+}
+else{
+
+showStatus(
+"氏名を自動認識できませんでした。\n" +
+"下の欄に氏名を入力してください。",
+"warning"
+);
+
+}
+
+
+/*
+   確認画面
+*/
+
+$("confirmation").style.display =
+"block";
+
+
+setTimeout(
+function(){
+
+$("numberInput").focus();
+
+},
+300
+);
+
+
+}
+catch(error){
+
+console.error(
+error
+);
+
+showStatus(
+error.message ||
+"読み取り中にエラーが発生しました。",
+"error"
+);
+
+}
+finally{
+
+button.disabled =
+false;
+
+}
+
+}
+);
+
+
+/* ==========================================
+   番号入力
+========================================== */
+
+$("numberInput")
+.addEventListener(
+"input",
+function(){
+
+this.value =
+onlyDigits(
+this.value
+);
+
+}
+);
+
+
+/* ==========================================
+   デジタル診察券表示
+========================================== */
+
+$("completeButton")
+.addEventListener(
+"click",
+function(){
+
+const number =
+onlyDigits(
+$("numberInput").value
+);
+
+
+const name =
+$("nameInput").value.trim();
+
+
+if(!number){
+
+showStatus(
+"診察券番号を入力してください。",
+"error"
+);
+
+$("numberInput").focus();
+
+return;
+
+}
+
+
+if(!name){
+
+showStatus(
+"氏名を入力してください。",
+"error"
+);
+
+$("nameInput").focus();
+
+return;
+
+}
+
+
+/*
+   最終表示
+*/
+
+$("finalNumber").textContent =
+number;
+
+$("finalName").textContent =
+name;
+
+
+/*
+   QR生成
+*/
+
+const qrContainer =
+$("finalQr");
+
+
+qrContainer.innerHTML =
+"";
+
+
+const qrSize =
+Math.min(
+300,
+Math.max(
+190,
+Math.floor(
+window.innerWidth *
+0.70
+)
+)
+);
+
+
+new QRCode(
+qrContainer,
+{
+
+text:number,
+
+width:qrSize,
+
+height:qrSize,
+
+colorDark:"#000000",
+
+colorLight:"#ffffff",
+
+correctLevel:
+QRCode.CorrectLevel.H
+
+}
+);
+
+
+/*
+   画面切替
+*/
+
+$("setup").style.display =
+"none";
+
+
+$("digitalCard").style.display =
+"flex";
+
+
+window.scrollTo(
+0,
+0
+);
+
+}
+);
+
+
+/* ==========================================
+   デジタル診察券を画像として保存
+========================================== */
+
+$("saveButton")
+.addEventListener(
+"click",
+async function(){
+
+try{
+
+const number =
+$("finalNumber").textContent;
+
+const name =
+$("finalName").textContent;
+
+
+/*
+   Canvasを作成
+*/
+
+const canvas =
+document.createElement(
+"canvas"
+);
+
+
+const width =
+1080;
+
+const height =
+1600;
+
+
+canvas.width =
+width;
+
+canvas.height =
+height;
+
+
+const ctx =
+canvas.getContext(
+"2d"
+);
+
+
+/*
+   背景
+*/
+
+const gradient =
+ctx.createLinearGradient(
+0,
+0,
+width,
+height
+);
+
+
+gradient.addColorStop(
+0,
+"#ffffff"
+);
+
+
+gradient.addColorStop(
+1,
+"#fff2f8"
+);
+
+
+ctx.fillStyle =
+gradient;
+
+
+ctx.fillRect(
+0,
+0,
+width,
+height
+);
+
+
+/*
+   外枠
+*/
+
+ctx.strokeStyle =
+"#e989b7";
+
+
+ctx.lineWidth =
+18;
+
+
+ctx.beginPath();
+
+
+ctx.roundRect(
+30,
+30,
+width - 60,
+height - 60,
+45
+);
+
+
+ctx.stroke();
+
+
+/*
+   医療機関名
+*/
+
+ctx.fillStyle =
+"#d3478b";
+
+
+ctx.textAlign =
+"center";
+
+
+ctx.font =
+"bold 58px sans-serif";
+
+
+ctx.fillText(
+"綱島ゆめみ産婦人科",
+width / 2,
+145
+);
+
+
+/*
+   診察券番号ラベル
+*/
+
+ctx.fillStyle =
+"#777";
+
+
+ctx.font =
+"32px sans-serif";
+
+
+ctx.fillText(
+"診察券番号",
+width / 2,
+290
+);
+
+
+/*
+   番号
+*/
+
+ctx.fillStyle =
+"#333";
+
+
+ctx.font =
+"bold 105px sans-serif";
+
+
+ctx.fillText(
+number,
+width / 2,
+410
+);
+
+
+/*
+   氏名ラベル
+*/
+
+ctx.fillStyle =
+"#b44a83";
+
+
+ctx.font =
+"bold 32px sans-serif";
+
+
+ctx.fillText(
+"氏名",
+width / 2,
+505
+);
+
+
+/*
+   氏名
+*/
+
+ctx.fillStyle =
+"#8e4b79";
+
+
+ctx.font =
+"bold 58px sans-serif";
+
+
+ctx.fillText(
+name,
+width / 2,
+590
+);
+
+
+/*
+   QRをCanvasにコピー
+*/
+
+const qrCanvas =
+$("finalQr")
+.querySelector("canvas");
+
+
+if(qrCanvas){
+
+ctx.drawImage(
+qrCanvas,
+240,
+700,
+600,
+600
+);
+
+}
+
+
+/*
+   PNG
+*/
+
+const blob =
+await new Promise(
+function(resolve){
+
+canvas.toBlob(
+resolve,
+"image/png"
+);
+
+}
+);
+
+
+if(!blob){
+
+throw new Error(
+"画像を作成できませんでした。"
+);
+
+}
+
+
+const file =
+new File(
+[blob],
+"綱島ゆめみ産婦人科_デジタル診察券.png",
+{
+type:"image/png"
+}
+);
+
+
+/*
+   スマホ共有機能
+*/
+
+if(
+navigator.share &&
+navigator.canShare &&
+navigator.canShare(
+{
+files:[file]
+}
+)
+){
+
+await navigator.share(
+{
+title:
+"綱島ゆめみ産婦人科 デジタル診察券",
+
+text:
+"デジタル診察券",
+
+files:[file]
+}
+);
+
+}
+else{
+
+/*
+   PC・非対応スマホ
+*/
+
+const url =
+URL.createObjectURL(
+blob
+);
+
+
+const a =
+document.createElement(
+"a"
+);
+
+
+a.href =
+url;
+
+
+a.download =
+"綱島ゆめみ産婦人科_デジタル診察券.png";
+
+
+document.body.appendChild(
+a
+);
+
+
+a.click();
+
+
+a.remove();
+
+
+URL.revokeObjectURL(
+url
+);
+
+}
+
+}
+catch(error){
+
+console.error(
+error
+);
+
+alert(
+"保存できませんでした。\n" +
+"お使いの端末の共有・保存機能を確認してください。"
+);
+
+}
+
+}
+);
+
+
+/* ==========================================
    最初に戻る
-================================================== */
+========================================== */
 
-$("restartButton").addEventListener(
-  "click",
-  function() {
+$("restartButton")
+.addEventListener(
+"click",
+function(){
 
-    selectedFile = null;
+selectedFile =
+null;
 
-    detectedNumber = "";
-
-    $("cameraInput").value =
-      "";
-
-    $("preview").style.display =
-      "none";
-
-    $("confirmation").style.display =
-      "none";
-
-    $("numberInput").value =
-      "";
-
-    $("nameInput").value =
-      "";
-
-    $("autoNumber").textContent =
-      "-";
-
-    $("digitalCard").style.display =
-      "none";
-
-    $("setup").style.display =
-      "block";
-
-    $("finalQr").innerHTML =
-      "";
-
-    hideStatus();
+detectedNumber =
+"";
 
 
-    if (imageUrl) {
-
-      URL.revokeObjectURL(
-        imageUrl
-      );
-
-      imageUrl = "";
-
-    }
+$("cameraInput").value =
+"";
 
 
-    window.scrollTo(
-      0,
-      0
-    );
+$("preview").style.display =
+"none";
 
-  }
+
+$("confirmation").style.display =
+"none";
+
+
+$("numberInput").value =
+"";
+
+
+$("nameInput").value =
+"";
+
+
+$("autoNumber").textContent =
+"-";
+
+
+$("digitalCard").style.display =
+"none";
+
+
+$("setup").style.display =
+"block";
+
+
+$("finalQr").innerHTML =
+"";
+
+
+hideStatus();
+
+
+if(imageUrl){
+
+URL.revokeObjectURL(
+imageUrl
 );
+
+imageUrl =
+"";
+
+}
+
+
+window.scrollTo(
+0,
+0
+);
+
+}
+);
+
 </script>
 
 </body>
