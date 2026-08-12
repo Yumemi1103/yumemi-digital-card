@@ -367,7 +367,7 @@ button:disabled{
       </div>
 
       <div class="name-label">
-        氏名
+        お名前
       </div>
 
       <div
@@ -384,24 +384,24 @@ button:disabled{
     </div>
 
 
-    <!-- 氏名の手動修正 -->
+    <!-- お名前の手動修正 -->
 
     <div class="manual-area">
 
       <label for="manualName">
-        氏名が正しくない場合は修正してください
+        お名前が正しくない場合は修正してください
       </label>
 
       <input
         id="manualName"
         type="text"
-        placeholder="氏名を入力">
+        placeholder="お名前を入力">
 
       <button
         type="button"
         class="secondary"
         onclick="applyManualName()">
-        氏名を修正する
+        お名前を修正する
       </button>
 
     </div>
@@ -1012,7 +1012,7 @@ async function scanQRCode(img){
 
 
 /* ==============================
-   氏名領域
+   お名前領域
    ============================== */
 
 function cleanName(text){
@@ -1111,7 +1111,7 @@ function cropNameArea(
   ){
 
     throw new Error(
-      "氏名領域を検出できませんでした。"
+      "お名前領域を検出できませんでした。"
     );
 
   }
@@ -1211,7 +1211,7 @@ async function recognizeName(
                 : "";
 
             setStatus(
-              "氏名をOCRで読み取っています…\n" +
+              "お名前をOCRで読み取っています…\n" +
               m.status +
               p
             );
@@ -1343,7 +1343,7 @@ async function processCard(){
       "診察券番号を取得しました。\n" +
       "番号：" +
       cardNumber +
-      "\n\n氏名を読み取っています…"
+      "\n\nお名前を読み取っています…"
     );
 
 
@@ -1396,7 +1396,7 @@ async function processCard(){
       )
       .textContent =
       patientName ||
-      "氏名を入力してください";
+      "お名前を入力してください";
 
 
     document
@@ -1438,7 +1438,7 @@ async function processCard(){
 
     setStatus(
       "読み取りが完了しました。\n" +
-      "必要に応じて氏名・診察券番号を手動で修正してください。"
+      "必要に応じてお名前・診察券番号を手動で修正してください。"
     );
 
   }
@@ -1463,7 +1463,7 @@ async function processCard(){
 
 
 /* ==============================
-   氏名手動修正
+   お名前手動修正
    ============================== */
 
 function applyManualName(){
@@ -1479,7 +1479,7 @@ function applyManualName(){
   if(!value){
 
     alert(
-      "氏名を入力してください。"
+      "お名前を入力してください。"
     );
 
     return;
@@ -1644,7 +1644,7 @@ function createSaveCanvas(){
   );
 
 
-  /* 氏名 */
+  /* お名前 */
 
   ctx.fillStyle =
     "#777";
@@ -1653,7 +1653,7 @@ function createSaveCanvas(){
     "32px sans-serif";
 
   ctx.fillText(
-    "氏名",
+    "お名前",
     width/2,
     500
   );
